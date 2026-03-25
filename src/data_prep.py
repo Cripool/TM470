@@ -1,6 +1,7 @@
 from pathlib import Path
 import random 
 import shutil
+print("Running data prep...")
 
 def split_dataset(
         raw_data_dir: str = "data/raw",
@@ -24,6 +25,7 @@ def split_dataset(
 
     for split_path in [train_path, val_path, test_path]:
         split_path.mkdir(parents=True, exist_ok=True)
+        
 
     class_dirs = [d for d in raw_path.iterdir() if d.is_dir()]
 
@@ -31,6 +33,7 @@ def split_dataset(
         raise FileNotFoundError(f"No class folders found in {raw_path}")
         
     for class_dir in class_dirs:
+            print(f"Found class folder: {class_dir}")
             images = [f for f in class_dir.iterdir() if f.is_file()]
             random.shuffle(images)
 
@@ -61,7 +64,7 @@ def split_dataset(
             )
     print("Dataset split complete.")
 
-    if __name__ == "__main__":
-        split_dataset()
+if __name__ == "__main__":
+    split_dataset()
         
         

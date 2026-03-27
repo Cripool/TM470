@@ -5,6 +5,11 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 from datetime import datetime
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+import os
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+run_dir = f"results/run_{timestamp}"
+os.makedirs(run_dir, exist_ok=True)
+os.makedirs("results", exist_ok=True)
 
 # Load and Preprocess data
 train_dir = "data/processed/train"
@@ -72,7 +77,7 @@ history = model.fit(train_ds, epochs=10,
 test_loss, test_acc = model.evaluate(test_ds, verbose=0)
 print(f"Test Accuracy: {test_acc:.3f}")
 
-with open(f"results_{timestamp}.txt", "w") as f:
+with open(f"{run_dir}/results.txt", "w") as f:
     f.write(f"Train Accuracy: {history.history['accuracy'][-1]:.4f}\n")
     f.write(f"Validation Accuracy: {history.history['val_accuracy'][-1]:.4f}\n")
     f.write(f"Test Accuracy: {test_acc:.4f}\n")
@@ -82,7 +87,7 @@ plt.plot(history.history["accuracy"], label="Train")
 plt.plot(history.history["val_accuracy"], label="Validation")
 plt.legend()
 plt.title("Accuracy")
-plt.savefig(f"results/accuracy_{timestamp}.png")
+plt.savefig(f"{run_dir}/accuracy.png")
 plt.show()
 
 #model 

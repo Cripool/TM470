@@ -1,4 +1,6 @@
 import torch
+import pandas as pd
+import numpy as np
 import torchvision
 import torch.nn as nn
 import torch.optim as optim
@@ -7,11 +9,6 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, classification_report
-
-
-import os
-
-print(os.listdir("data/processed/test"))
 
 # ---Data Transform --- 
 

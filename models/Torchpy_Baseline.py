@@ -30,16 +30,22 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True # Temporary safety net
 train_dir = "data/processed/train"
 val_dir = "data/processed/val"
 test_dir = "data/processed/test"
-results_dir = "results/baseline"
+run_id = time.strftime("%d%m%Y_%H%M")
+
+base_results_dir = os.path.join("results", "baseline")
+results_dir = os.path.join(base_results_dir, f"run_{run_id}")
+
+os.makedirs(results_dir, exist_ok=True)
+
+print(f"Saving results to: {results_dir}")
+
+
 
 
 Batch_size = 32
 epochs = 10
 Learning_Rate = 0.001
 Image_size = (224, 224)
-
-os.makedirs(results_dir, exist_ok=True)
-
 
 # ------------------------
 # DEVICE
@@ -68,9 +74,9 @@ test_data = datasets.ImageFolder("data/processed/test", transform=transform)
 val_data = datasets.ImageFolder("data/processed/val", transform=transform)
 
 
-trainloader = DataLoader(train_data, batch_size=32, shuffle=True)
-valloader = DataLoader(val_data, batch_size=32, shuffle=False)
-testloader = DataLoader(test_data, batch_size=32, shuffle=False)
+trainloader = DataLoader(train_data, Batch_size, shuffle=True)
+valloader = DataLoader(val_data, Batch_size, shuffle=False)
+testloader = DataLoader(test_data, Batch_size, shuffle=False)
 
 class_names = train_data.classes
 num_classes = len(class_names)
@@ -124,6 +130,7 @@ model = BaselineCNN(num_classes).to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=Learning_Rate)
+
 # ------------------------
 # EVALUATE FUNCTION
 # ------------------------
@@ -250,6 +257,11 @@ for epoch in range (epochs):
 
 print("Finished Training")
 
+model_path = os.path.join(results_dir, "baseline_model.pth")
+torch.save(model.state_dict(), model_path)
+
+print(f"Sabed model to: {model_path}")
+
 # -----------------------------
 # SAVE EPOCH HISTORY
 # -----------------------------
@@ -344,7 +356,6 @@ with pd.ExcelWriter(excel_path, engine="openpyxl", mode="a", if_sheet_exists="re
 # -----------------------------
 def prediction_log(model, dataset, device):
     model.eval()
-
     rows = []
 
     with torch.no_grad():
@@ -376,8 +387,17 @@ def prediction_log(model, dataset, device):
     return pd.DataFrame(rows)
 
 prediction_df = prediction_log(model, test_data, device)
+
 with pd.ExcelWriter(excel_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
     prediction_df.to_excel(writer, sheet_name="Per Image Predictions", index=False)
+
+csv_path = os.path.join(results_dir, "baseline_per_image_predictions.csv")
+prediction_df.to_csv(csv_path, index=False)
+
+print(prediction_df.head())
+print(f"Saved per-image CSV to: {csv_path}")
+print(f"Per0imge rows: {len(prediction_df)}")
+print(f"Expected test images: {len(test_data)}")
 
 print(f"\nSaved results to: {excel_path}")
 print(f"Saved graphs to: {results_dir}")

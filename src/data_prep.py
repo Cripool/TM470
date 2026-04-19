@@ -1,8 +1,10 @@
-from pathlib import Path
+#Importing Required Libraries
+from pathlib import Path 
 import random 
 import shutil
 print("Running data prep...")
 
+# Definition class to split the images into Training Validation and Test sets at a ratio of 70%/15%/15%
 def split_dataset(
         raw_data_dir: str = "data/raw",
         processed_data_dir: str = "data/processed",
@@ -16,6 +18,7 @@ def split_dataset(
 
     random.seed(seed)
 
+# Sets the raw and processed directory Paths as well as the trainng validation and test paths
     raw_path = Path(raw_data_dir)
     processed_path = Path(processed_data_dir)
 
@@ -23,15 +26,18 @@ def split_dataset(
     val_path = processed_path / "val"
     test_path = processed_path / "test"
 
+# Creates the required folders if they do not exist 
     for split_path in [train_path, val_path, test_path]:
         split_path.mkdir(parents=True, exist_ok=True)
         
 
     class_dirs = [d for d in raw_path.iterdir() if d.is_dir()]
-
+    
+# if no files are found then it throws up the below error
     if not class_dirs:
         raise FileNotFoundError(f"No class folders found in {raw_path}")
-        
+
+# for each class in the directory it will iterate through the folder and randomly shuffle the images     
     for class_dir in class_dirs:
             print(f"Found class folder: {class_dir}")
             images = [f for f in class_dir.iterdir() if f.is_file()]
@@ -55,7 +61,8 @@ def split_dataset(
 
                 for file_path in split_files:
                     shutil.copy2(file_path, target_class_dir / file_path.name)
-
+                    
+# Prints the total length of each of the split datasets
             print(
                 f"{class_dir.name}: "
                 f"{len(train_files)} train,"

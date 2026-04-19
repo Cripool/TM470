@@ -39,9 +39,6 @@ os.makedirs(results_dir, exist_ok=True)
 
 print(f"Saving results to: {results_dir}")
 
-
-
-
 Batch_size = 32
 epochs = 10
 Learning_Rate = 0.001
@@ -346,10 +343,12 @@ summary_df = pd.DataFrame([{
     "avg_epoch_time_sec": history_df["epoch_time_sec"].mean()
 }])
 
-with pd.ExcelWriter(excel_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+with pd.ExcelWriter(excel_path, engine="openpyxl", mode="w") as writer:
+    history_df
     summary_df.to_excel(writer, sheet_name="Test Summary", index=False)
     report_df.to_excel(writer, sheet_name="Classification Report")
     cm_df.to_excel(writer, sheet_name="Confusion Matrix")
+    prediction_df
 
 # -----------------------------
 # PER-IMAGE PREDICTION LOG

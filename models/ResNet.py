@@ -1,4 +1,5 @@
 import torch
+import time
 from time import perf_counter
 import torch.nn as nn
 import torch.optim as optim

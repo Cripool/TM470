@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import (
     confusion_matrix, 
     classification_report, 
-    classification_report, 
     f1_score, 
     precision_score, 
     recall_score
@@ -257,7 +256,7 @@ print("Finished Training")
 model_path = os.path.join(results_dir, "baseline_model.pth")
 torch.save(model.state_dict(), model_path)
 
-print(f"Sabed model to: {model_path}")
+print(f"Saved model to: {model_path}")
 
 # -----------------------------
 # SAVE EPOCH HISTORY
@@ -344,12 +343,11 @@ summary_df = pd.DataFrame([{
 }])
 
 with pd.ExcelWriter(excel_path, engine="openpyxl", mode="w") as writer:
-    history_df
+    history_df.to_excel(writer,sheet_name="Epoch Metrics", index=False)
     summary_df.to_excel(writer, sheet_name="Test Summary", index=False)
     report_df.to_excel(writer, sheet_name="Classification Report")
     cm_df.to_excel(writer, sheet_name="Confusion Matrix")
-    prediction_df
-
+   
 # -----------------------------
 # PER-IMAGE PREDICTION LOG
 # -----------------------------
@@ -395,7 +393,7 @@ prediction_df.to_csv(csv_path, index=False)
 
 print(prediction_df.head())
 print(f"Saved per-image CSV to: {csv_path}")
-print(f"Per0imge rows: {len(prediction_df)}")
+print(f"Per-imge rows: {len(prediction_df)}")
 print(f"Expected test images: {len(test_data)}")
 
 print(f"\nSaved results to: {excel_path}")

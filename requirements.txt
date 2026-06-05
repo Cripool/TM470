@@ -2,7 +2,9 @@ numpy
 pandas
 matplotlib
 scikit-learn
-tensorflow
+## tensorflow
 jupyter
 ipykernel
 pillow
+torchvision
+seaborn

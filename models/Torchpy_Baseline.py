@@ -20,7 +20,22 @@ from sklearn.metrics import (
     recall_score
 )
 import seaborn as sns
+import random
 
+
+seed = 42
+
+random.seed(seed)
+np.random.seed(seed)
+torch.manual_seed(seed)
+
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+    
 # ------------------------
 # SETTINGS
 # ------------------------
@@ -29,12 +44,12 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True # Temporary safety net
 train_dir = "data/processed/train"
 val_dir = "data/processed/val"
 test_dir = "data/processed/test"
-run_id = time.strftime("%d%m%Y_%H%M")
+run_id = time.strftime("%d%m%Y_%H%M%S")
 
 base_results_dir = os.path.join("results", "baseline")
 results_dir = os.path.join(base_results_dir, f"run_{run_id}")
 
-os.makedirs(results_dir, exist_ok=True)
+os.makedirs(results_dir, exist_ok=False)
 
 print(f"Saving results to: {results_dir}")
 
@@ -69,6 +84,13 @@ train_data = datasets.ImageFolder("data/processed/train", transform=transform)
 test_data = datasets.ImageFolder("data/processed/test", transform=transform)
 val_data = datasets.ImageFolder("data/processed/val", transform=transform)
 
+assert train_data.class_to_idx == val_data.class_to_idx, (
+    "Training an validation class mappings do not match."
+)
+
+assert train_data.class_to_idx == test_data.class_to_idx, (
+    "Training and test class mappings do not match."
+)
 
 trainloader = DataLoader(train_data, Batch_size, shuffle=True)
 valloader = DataLoader(val_data, Batch_size, shuffle=False)
@@ -333,6 +355,12 @@ report_dict = classification_report(
 report_df = pd.DataFrame(report_dict).transpose()
 
 summary_df = pd.DataFrame([{
+    "model_name": "BaselineCNN",
+    "seed": seed,
+    "epochs": epochs,
+    "batch_size": Batch_size,
+    "learning_rate": Learning_Rate,
+    "Image_size": Image_size,
     "test_loss": test_metrics["loss"],
     "test_accuracy": test_metrics["accuracy"],
     "test_f1_macro": test_metrics["f1"],
@@ -359,9 +387,16 @@ def prediction_log(model, dataset, device):
         for idx, (path, true_label) in enumerate(dataset.samples):
             image, _ = dataset[idx]
             image = image.unsqueeze(0).to(device)
-
+        
+            if device.type =="cuda":
+                torch.cuda.synchronize()
+                
             start = time.perf_counter()
             outputs = model(image)
+            
+            if device.type == "cuda":
+                torch.cuda.synchronize()
+                    
             inference_time = time.perf_counter() - start
 
             probs = torch.softmax(outputs, dim=1)
@@ -371,15 +406,15 @@ def prediction_log(model, dataset, device):
             confidence_val = confidence.item()
 
             rows.append({
-                "image_path": path,
-                "true_label": class_names[true_label],
-                "predicted_label": class_names[pred_idx],
-                "correct": class_names[true_label] == class_names[pred_idx],
-                "confidence": confidence_val,
-                "inference_time_sec": inference_time,
-                "model_name": "BaselineCNN",
-                "split": "test"
-            })
+                    "image_path": path,
+                    "true_label": class_names[true_label],
+                    "predicted_label": class_names[pred_idx],
+                    "correct": class_names[true_label] == class_names[pred_idx],
+                    "confidence": confidence_val,
+                    "inference_time_sec": inference_time,
+                    "model_name": "BaselineCNN",
+                    "split": "test"
+                })
 
     return pd.DataFrame(rows)
 

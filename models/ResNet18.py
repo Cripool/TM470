@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms, models
+from torchvision.models import ResNet18_Weights
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
@@ -110,7 +111,11 @@ print("Test samples:", len(test_data))
 # MODEL
 # ------------------------
 
-model = models.resnet18(pretrained=False)
+model = models.resnet18(weights=ResNet18_Weights.DEFAULT)
+
+for param in model.parameters():
+    param.requires_grad = False
+    
 model.fc = nn.Linear(model.fc.in_features, num_classes)
 model = model.to(device)
 

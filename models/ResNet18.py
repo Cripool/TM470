@@ -10,19 +10,32 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms, models
-from torchvision.models import ResNet18_Weights
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
     confusion_matrix, 
-    classification_report, 
     classification_report, 
     f1_score, 
     precision_score, 
     recall_score
 )
 import seaborn as sns
+import random
 
+
+seed = 42
+
+random.seed(seed)
+np.random.seed(seed)
+torch.manual_seed(seed)
+
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+    
 # ------------------------
 # SETTINGS
 # ------------------------
@@ -31,12 +44,12 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True # Temporary safety net
 train_dir = "data/processed/train"
 val_dir = "data/processed/val"
 test_dir = "data/processed/test"
-run_id = time.strftime("%d%m%Y_%H%M")
+run_id = time.strftime("%d%m%Y_%H%M%S")
 
-ResNet18_results_dir = os.path.join("results", "ResNet18")
+ResNet18_results_dir = os.path.join("results", "resnet18")
 results_dir = os.path.join(ResNet18_results_dir, f"run_{run_id}")
 
-os.makedirs(results_dir, exist_ok=True)
+os.makedirs(results_dir, exist_ok=False)
 
 print(f"Saving results to: {results_dir}")
 
@@ -71,6 +84,13 @@ train_data = datasets.ImageFolder("data/processed/train", transform=transform)
 test_data = datasets.ImageFolder("data/processed/test", transform=transform)
 val_data = datasets.ImageFolder("data/processed/val", transform=transform)
 
+assert train_data.class_to_idx == val_data.class_to_idx, (
+    "Training an validation class mappings do not match."
+)
+
+assert train_data.class_to_idx == test_data.class_to_idx, (
+    "Training and test class mappings do not match."
+)
 
 trainloader = DataLoader(train_data, Batch_size, shuffle=True)
 valloader = DataLoader(val_data, Batch_size, shuffle=False)
@@ -90,24 +110,12 @@ print("Test samples:", len(test_data))
 # MODEL
 # ------------------------
 
-model = models.ResNet18(weights=ResNet18_Weights.DEFAULT)
-
-# Freeze pretrained feature extraction layers
-
-for param in model.parameters():
-    param.requires_grad = False
-
-
-# Replace final classification layer for mushroom classes
+model = models.resnet18(pretrained=False)
 model.fc = nn.Linear(model.fc.in_features, num_classes)
-
 model = model.to(device)
 
-
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(
-    filter(lambda p: p.requires_grad, model.parameters()), 
-    lr=Learning_Rate)
+optimizer = optim.Adam(model.parameters(), lr=Learning_Rate)
 
 # ------------------------
 # EVALUATE FUNCTION
@@ -235,16 +243,16 @@ for epoch in range (epochs):
 
 print("Finished Training")
 
-model_path = os.path.join(results_dir, "ResNet18_model.pth")
+model_path = os.path.join(results_dir, "resnet18_model.pth")
 torch.save(model.state_dict(), model_path)
 
-print(f"Sabed model to: {model_path}")
+print(f"Saved model to: {model_path}")
 
 # -----------------------------
 # SAVE EPOCH HISTORY
 # -----------------------------
 history_df = pd.DataFrame(history)
-excel_path = os.path.join(results_dir, "ResNet18_results.xlsx")
+excel_path = os.path.join(results_dir, "resnet18_results.xlsx")
 
 with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
     history_df.to_excel(writer, sheet_name="Epoch Metrics", index=False)
@@ -315,6 +323,12 @@ report_dict = classification_report(
 report_df = pd.DataFrame(report_dict).transpose()
 
 summary_df = pd.DataFrame([{
+    "model_name": "ResNet18",
+    "seed": seed,
+    "epochs": epochs,
+    "batch_size": Batch_size,
+    "learning_rate": Learning_Rate,
+    "Image_size": Image_size,
     "test_loss": test_metrics["loss"],
     "test_accuracy": test_metrics["accuracy"],
     "test_f1_macro": test_metrics["f1"],
@@ -325,11 +339,11 @@ summary_df = pd.DataFrame([{
 }])
 
 with pd.ExcelWriter(excel_path, engine="openpyxl", mode="w") as writer:
-    history_df.to_excel(writer, sheet_name ="Epoch Metrics", index=False)
+    history_df.to_excel(writer,sheet_name="Epoch Metrics", index=False)
     summary_df.to_excel(writer, sheet_name="Test Summary", index=False)
     report_df.to_excel(writer, sheet_name="Classification Report")
     cm_df.to_excel(writer, sheet_name="Confusion Matrix")
-
+   
 # -----------------------------
 # PER-IMAGE PREDICTION LOG
 # -----------------------------
@@ -341,27 +355,32 @@ def prediction_log(model, dataset, device):
         for idx, (path, true_label) in enumerate(dataset.samples):
             image, _ = dataset[idx]
             image = image.unsqueeze(0).to(device)
-
+        
+            if device.type == "cuda":
+                torch.cuda.synchronize()
+                
             start = time.perf_counter()
             outputs = model(image)
+            
+            if device.type == "cuda":
+                torch.cuda.synchronize()
+                    
             inference_time = time.perf_counter() - start
 
             probs = torch.softmax(outputs, dim=1)
             confidence, pred = torch.max(probs, 1)
 
-            pred_idx = pred.item()
-            confidence_val = confidence.item()
 
             rows.append({
-                "image_path": path,
-                "true_label": class_names[true_label],
-                "predicted_label": class_names[pred_idx],
-                "correct": class_names[true_label] == class_names[pred_idx],
-                "confidence": confidence_val,
-                "inference_time_sec": inference_time,
-                "model_name": "ResNet18",
-                "split": "test"
-            })
+                    "image_path": path,
+                    "true_label": class_names[true_label],
+                    "predicted_label": class_names[pred.item()],
+                    "correct": class_names[true_label] == class_names[pred.item()],
+                    "confidence": confidence.item(),
+                    "inference_time_sec": inference_time,
+                    "model_name": "ResNet18",
+                    "split": "test"
+                })
 
     return pd.DataFrame(rows)
 
@@ -370,12 +389,12 @@ prediction_df = prediction_log(model, test_data, device)
 with pd.ExcelWriter(excel_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
     prediction_df.to_excel(writer, sheet_name="Per Image Predictions", index=False)
 
-csv_path = os.path.join(results_dir, "ResNet18_per_image_predictions.csv")
+csv_path = os.path.join(results_dir, "resnet18_per_image_predictions.csv")
 prediction_df.to_csv(csv_path, index=False)
 
 print(prediction_df.head())
 print(f"Saved per-image CSV to: {csv_path}")
-print(f"Per0imge rows: {len(prediction_df)}")
+print(f"Per-imge rows: {len(prediction_df)}")
 print(f"Expected test images: {len(test_data)}")
 
 print(f"\nSaved results to: {excel_path}")

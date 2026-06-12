@@ -47,7 +47,7 @@ val_dir = "data/processed/val"
 test_dir = "data/processed/test"
 run_id = time.strftime("%d%m%Y_%H%M%S")
 
-ResNet18_results_dir = os.path.join("results", "resnet18")
+ResNet18_results_dir = os.path.join("results", "resnet18_pretrained")
 results_dir = os.path.join(ResNet18_results_dir, f"run_{run_id}")
 
 os.makedirs(results_dir, exist_ok=False)
@@ -111,7 +111,7 @@ print("Test samples:", len(test_data))
 # MODEL
 # ------------------------
 
-model = models.resnet18(weights=None)
+model = models.resnet18(weights=ResNet18_Weights.DEFAULT)
 
 for param in model.parameters():
     param.requires_grad = False
@@ -248,7 +248,7 @@ for epoch in range (epochs):
 
 print("Finished Training")
 
-model_path = os.path.join(results_dir, "resnet18_model.pth")
+model_path = os.path.join(results_dir, "resnet18_pretrained_model.pth")
 torch.save(model.state_dict(), model_path)
 
 print(f"Saved model to: {model_path}")
@@ -257,7 +257,7 @@ print(f"Saved model to: {model_path}")
 # SAVE EPOCH HISTORY
 # -----------------------------
 history_df = pd.DataFrame(history)
-excel_path = os.path.join(results_dir, "resnet18_results.xlsx")
+excel_path = os.path.join(results_dir, "resnet18_pretrained_results.xlsx")
 
 with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
     history_df.to_excel(writer, sheet_name="Epoch Metrics", index=False)
@@ -383,7 +383,7 @@ def prediction_log(model, dataset, device):
                     "correct": class_names[true_label] == class_names[pred.item()],
                     "confidence": confidence.item(),
                     "inference_time_sec": inference_time,
-                    "model_name": "ResNet18",
+                    "model_name": "ResNet18_pretrained",
                     "split": "test"
                 })
 
@@ -394,7 +394,7 @@ prediction_df = prediction_log(model, test_data, device)
 with pd.ExcelWriter(excel_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
     prediction_df.to_excel(writer, sheet_name="Per Image Predictions", index=False)
 
-csv_path = os.path.join(results_dir, "resnet18_per_image_predictions.csv")
+csv_path = os.path.join(results_dir, "resnet18_pretrained_per_image_predictions.csv")
 prediction_df.to_csv(csv_path, index=False)
 
 print(prediction_df.head())

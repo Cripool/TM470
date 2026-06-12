@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms, models
-from torchvision.models import ResNet18_Weights
+from torchvision.models import MobileNet_V2_Weights
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
@@ -47,10 +47,10 @@ val_dir = "data/processed/val"
 test_dir = "data/processed/test"
 run_id = time.strftime("%d%m%Y_%H%M%S")
 
-ResNet18_results_dir = os.path.join("results", "resnet18")
-results_dir = os.path.join(ResNet18_results_dir, f"run_{run_id}")
+MobileNetV2_results_dir = os.path.join("results", "MobileNetV2")
+results_dir = os.path.join(MobileNetV2_results_dir, f"run_{run_id}")
 
-os.makedirs(results_dir, exist_ok=False)
+os.makedirs(results_dir, exist_ok=True)
 
 print(f"Saving results to: {results_dir}")
 
@@ -108,20 +108,25 @@ print("Test samples:", len(test_data))
 
 
 # ------------------------
-# MODEL
+# MODEL - MOBILENETV2
 # ------------------------
 
-model = models.resnet18(weights=None)
+model = models.mobilenet_v2(weights=None)
 
-for param in model.parameters():
-    param.requires_grad = False
+
+
+# Replace final classiFier layer for mushroom classes
     
-model.fc = nn.Linear(model.fc.in_features, num_classes)
+model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
 model = model.to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=Learning_Rate)
 
+print("Trainable parameters:")
+for name, param in model.named_parameters():
+    if param.requires_grad:
+        print(name)
 # ------------------------
 # EVALUATE FUNCTION
 # ------------------------
@@ -248,7 +253,7 @@ for epoch in range (epochs):
 
 print("Finished Training")
 
-model_path = os.path.join(results_dir, "resnet18_model.pth")
+model_path = os.path.join(results_dir, "MobileNetV2_model.pth")
 torch.save(model.state_dict(), model_path)
 
 print(f"Saved model to: {model_path}")
@@ -257,7 +262,7 @@ print(f"Saved model to: {model_path}")
 # SAVE EPOCH HISTORY
 # -----------------------------
 history_df = pd.DataFrame(history)
-excel_path = os.path.join(results_dir, "resnet18_results.xlsx")
+excel_path = os.path.join(results_dir, "MobileNetV2_results.xlsx")
 
 with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
     history_df.to_excel(writer, sheet_name="Epoch Metrics", index=False)
@@ -328,7 +333,7 @@ report_dict = classification_report(
 report_df = pd.DataFrame(report_dict).transpose()
 
 summary_df = pd.DataFrame([{
-    "model_name": "ResNet18",
+    "model_name": "MobileNetV2",
     "seed": seed,
     "epochs": epochs,
     "batch_size": Batch_size,
@@ -383,7 +388,7 @@ def prediction_log(model, dataset, device):
                     "correct": class_names[true_label] == class_names[pred.item()],
                     "confidence": confidence.item(),
                     "inference_time_sec": inference_time,
-                    "model_name": "ResNet18",
+                    "model_name": "MobileNetV2",
                     "split": "test"
                 })
 
@@ -394,7 +399,7 @@ prediction_df = prediction_log(model, test_data, device)
 with pd.ExcelWriter(excel_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
     prediction_df.to_excel(writer, sheet_name="Per Image Predictions", index=False)
 
-csv_path = os.path.join(results_dir, "resnet18_per_image_predictions.csv")
+csv_path = os.path.join(results_dir, "MobileNetV2_per_image_predictions.csv")
 prediction_df.to_csv(csv_path, index=False)
 
 print(prediction_df.head())

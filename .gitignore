@@ -1,3 +1,12 @@
 venv/
 data/raw/
 data/processed/
+
+# Python virtual environments
+venv/
+venv_broken/
+.venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]

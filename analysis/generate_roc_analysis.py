@@ -28,7 +28,7 @@ MODEL_FILES = {
         PROJECT_ROOT
         / "results"
         / "ema_probabilities"
-        / "resnet18_corrected_ema_probabilities.csv"
+        / "resnet18_corrected_ema_predictions.csv"
     ),
      "MobileNetV2": (
         PROJECT_ROOT
@@ -158,7 +158,7 @@ def load_model_data(
             f"{probability_score.shape}"
         )
 
-    print(f"Rows: {len(data):, }")
+    print(f"Rows: {len(data):,}")
     print(f"Classes: {len(class_names)}")
     print(
         "Maximum probability-sum error: "
@@ -177,17 +177,16 @@ def load_model_data(
 # --------------------------------------------------
 
 def calculate_roc_metrics(
-        model_name: str,
-        class_names: list[str],
-        binary_true_label: np.ndarray,
-        probability_scores: np.ndarray,
-)-> tuple[
+    model_name: str,
+    class_names: list[str],
+    binary_true_labels: np.ndarray,
+    probability_scores: np.ndarray,
+) -> tuple[
     dict[str, np.ndarray],
     dict[str, np.ndarray],
     dict[str, float],
     pd.DataFrame,
 ]:
-
     """
     Calculate one-vs-rest ROC curves for every class, together
     with micro-average and macro-average ROC curves.
@@ -199,81 +198,84 @@ def calculate_roc_metrics(
 
     class_rows: list[dict[str, object]] = []
 
+    # Calculate each class first
     for class_index, class_name in enumerate(class_names):
         fpr, tpr, _ = roc_curve(
-            binary_true_label[:, class_index],
+            binary_true_labels[:, class_index],
             probability_scores[:, class_index],
         )
 
-        class_auc = float(auc(fpr, tpr))
+        class_auc = float(
+            auc(fpr, tpr)
+        )
 
         false_positive_rates[class_name] = fpr
         true_positive_rates[class_name] = tpr
         auc_values[class_name] = class_auc
 
         class_rows.append(
-
             {
                 "model": model_name,
                 "class_name": class_name,
                 "auc": class_auc,
-                
             }
         )
 
-        micro_fpr, micro_tpr, _ = roc_curve(
-            binary_true_label.ravel(),
-            probability_scores.ravel(),
+    # Calculate the micro-average after all classes exist
+    micro_fpr, micro_tpr, _ = roc_curve(
+        binary_true_labels.ravel(),
+        probability_scores.ravel(),
+    )
+
+    micro_auc = float(
+        auc(micro_fpr, micro_tpr)
+    )
+
+    false_positive_rates["micro"] = micro_fpr
+    true_positive_rates["micro"] = micro_tpr
+    auc_values["micro"] = micro_auc
+
+    # Calculate the macro-average after all classes exist
+    interpolated_tprs = []
+
+    for class_name in class_names:
+        interpolated_tpr = np.interp(
+            COMMON_FPR,
+            false_positive_rates[class_name],
+            true_positive_rates[class_name],
         )
 
-        micro_auc = float (
-            auc(micro_fpr, micro_tpr)
-        )
+        interpolated_tpr[0] = 0.0
+        interpolated_tprs.append(interpolated_tpr)
 
-        false_positive_rates["micro"] = micro_fpr
-        true_positive_rates["micro"] = micro_tpr
-        auc_values["micro"] = micro_auc
+    macro_tpr = np.mean(
+        interpolated_tprs,
+        axis=0,
+    )
 
-        interpolated_tprs = []
+    macro_tpr[-1] = 1.0
 
-        for class_name in class_names:
-            interpolated_tpr = np.interp(
-                COMMON_FPR,
-                false_positive_rates[class_name],
-                true_positive_rates[class_name],
-            )
+    macro_auc = float(
+        auc(COMMON_FPR, macro_tpr)
+    )
 
-            interpolated_tpr[0] = 0.0
-            interpolated_tprs.append(interpolated_tpr)
+    false_positive_rates["macro"] = COMMON_FPR
+    true_positive_rates["macro"] = macro_tpr
+    auc_values["macro"] = macro_auc
 
-        macro_tpr = np.mean(
-            interpolated_tprs,
-            axis=0,
-        )
+    class_auc_table = pd.DataFrame(
+        class_rows
+    )
 
-        macro_tpr[-1] = 1.0
+    print(f"Micro-average AUC: {micro_auc:.4f}")
+    print(f"Macro-average AUC: {macro_auc:.4f}")
 
-        macro_auc = float(
-
-            auc(COMMON_FPR, macro_tpr)
-        )
-
-        false_positive_rates["macro"] = COMMON_FPR
-        true_positive_rates["macro"] = macro_tpr
-        auc_values["macro"] = macro_auc
-
-        class_auc_table = pd.DataFrame(class_rows)
-
-        print(f"Micro-averahe AUC: {micro_auc:.4f}")
-        print(f"Macro-average AUC: {macro_auc:.4f}")
-
-        return(
-            false_positive_rates,
-            true_positive_rates,
-            auc_values,
-            class_auc_table,
-        )
-
+    return (
+        false_positive_rates,
+        true_positive_rates,
+        auc_values,
+        class_auc_table,
+    )
 
 
 # ------------------------------------------------------
@@ -321,7 +323,7 @@ def plot_model_roc(
         false_positive_rates["macro"],
         true_positive_rates["macro"],
         linestyle=":",
-        lineewidth=2.5,
+        linewidth=2.5,
         label=(
             "Macro-average "
             f"(AUC = {auc_values['macro']:.3f})"
@@ -357,7 +359,7 @@ def plot_model_roc(
     safe_model_name = (
         model_name
         .lower()
-        .replaced(" ", "_")
+        .replace(" ", "_")
     )
 
     output_path = (
@@ -416,7 +418,7 @@ def plot_average_comparison(
             false_positive_rates[average_type],
             true_positive_rates[average_type],
             linewidth=2.5,
-            labe=(
+            label=(
                 f"{model_name} "
                 f"(AUC = {auc_values[average_type]:.3f})"
             ),
@@ -569,7 +571,7 @@ def save_auc_tables(
             / "auc.summary.csv"
         )
 
-        "summary_table".to_csv(
+        summary_tables.to_csv(
             summary_table_path,
             index = False,
         )
@@ -621,7 +623,7 @@ def main() -> None:
         (
             _,
             class_names,
-            binary_true_label,
+            binary_true_labels,
             probability_scores,           
         ) = load_model_data(
             model_name=model_name,
@@ -644,7 +646,7 @@ def main() -> None:
 
             model_name=model_name,
             class_names=class_names,
-            binary_true_label=binary_true_label,
+            binary_true_labels=binary_true_labels,
             probability_scores=probability_scores,
         )
 
@@ -678,7 +680,7 @@ def main() -> None:
         )
 
         save_auc_tables(
-            class_auc_tables=class_auc_table,
+            class_auc_tables=class_auc_tables,
             model_roc_results=model_roc_results,
             output_directory=OUTPUT_DIRECTORY,
         )

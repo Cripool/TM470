@@ -168,15 +168,112 @@ def load_and_validate_model_data() -> dict[str, pd.DataFrame]:
 
     return model_data
 
+        
+
+def calculate_overall_metrics(
+        model_data: dict[str, pd.DataFrame],
+) -> pd.DataFrame:
+    """
+    Calculate consistent overall performance metrics for each model.
+    """
+
+    metric_rows: list[dict[str, object]] =[]
+
+    print("\nCalculating overall metrics...")
+
+    for model_name, data in model_data.items():
+        true_labels = data["true_label"]
+        predicted_labels = data["predicted_label"]
+
+        accuracy = accuracy_score(
+            true_labels,
+            predicted_labels
+        )
+
+        (
+            weighted_precision,
+            weighted_recall,
+            weighted_f1,
+            _,
+        ) = precision_recall_fscore_support(
+            true_labels,
+            predicted_labels,
+            average="weighted",
+            zero_division=0,
+        )
+
+
+        (
+            macro_precision,
+            macro_recall,
+            macro_f1,
+            _,
+        ) = precision_recall_fscore_support(
+            true_labels,
+            predicted_labels,
+            average="macro",
+            zero_division=0,
+        )
+
+        correct_predictions = int(
+            (true_labels == predicted_labels).sum()
+        )
+
+        incorrect_predictions = int(
+            len(data) - correct_predictions
+        )
+
+        metric_rows.append({
+            "model": model_name,
+            "test_images": len(data),
+            "correct_predictions": correct_predictions,
+            "incorrect_predictions": incorrect_predictions,
+            "accuracy": accuracy,
+            "macro_precision": macro_precision,
+            "macro_recall": macro_recall,
+            "macro_f1": macro_f1,
+            "weighted_precision": weighted_precision,
+            "weighted_recall": weighted_recall,
+            "weighted_f1": weighted_f1,
+            "average_inference_time_ms": (
+                data["inference_time_sec"].mean() * 1000
+            ),
+            "median_inference_time_ms": (
+                data["inference_time_sec"].median() * 1000
+            ),
+        }
+    )
+
+    metrics_table = pd.DataFrame(metric_rows)
+
+    metrics_table = metrics_table.sort_values(
+        "macro_f1",
+        ascending=False,
+    ).reset_index(drop=True)
+
+    OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+    output_path = (OUTPUT_DIRECTORY / "overall_metrics.csv")
+
+    metrics_table.to_csv(output_path, index=False)
+
+    print("\nOverall model metrics:")
+    print(
+        metrics_table.round(4).to_string(index=False)
+    )
+
+    print("\nSaved overall metrics to: "
+          f"{output_path.relative_to(PROJECT_ROOT)}")
+
+    return metrics_table
+
 def main() -> None:
     inspect_input_files()
-    load_and_validate_model_data()
+    model_data = load_and_validate_model_data()
 
-
+    calculate_overall_metrics(model_data=model_data)
 
 if __name__ == "__main__":
     main()
-        
-
 
 

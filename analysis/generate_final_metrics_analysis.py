@@ -267,11 +267,139 @@ def calculate_overall_metrics(
 
     return metrics_table
 
+
+def calculate_per_class_metrics(
+        model_data: dict[str, pd.DataFrame],
+) -> pd.DataFrame:
+    """
+    Calculate precision, recall, F1-score and support
+    for each mushroom class for every model."""
+
+
+    metric_rows: list[dict[str, object]] = []
+
+    print("\nCalculating per-class metrics...")
+
+    for model_name, data in model_data.items():
+        class_names = sorted(data["true_label"].unique()
+        )
+
+        (
+            precision_values,
+            recall_values,
+            f1_values,
+            support_values,
+        ) = precision_recall_fscore_support(
+            data["true_label"],
+            data["predicted_label"],
+            labels=class_names,
+            zero_division=0,
+            average=None,
+        )
+
+        for (
+
+            class_name,
+            precision,
+            recall,
+            f1_score,
+            support,
+        ) in zip(
+            class_names,
+            precision_values,
+            recall_values,
+            f1_values,
+            support_values,
+        ):
+            metric_rows.append({
+                "model": model_name,
+                "class_name": class_name,
+                "precision": precision,
+                "recall": recall,
+                "f1_score": f1_score,
+                "support": int(support),
+            }
+
+        )
+
+        model_results = pd.DataFrame(
+            [
+                row
+                for row in metric_rows
+                if row["model"] == model_name
+            ]
+        )
+
+        strongest_class = model_results.loc[
+            model_results["f1_score"].idxmax()
+        ]
+        weakest_class = model_results.loc[
+            model_results["f1_score"].idxmin()
+        ]
+
+        print(
+            f"\n{model_name}:"
+        )
+        print(
+            " strongest class: "
+            f"{strongest_class['class_name']} "
+            f"(F1={strongest_class['f1_score']:.4f})"
+        )
+        print(
+            "Weakest class: "
+            f"{weakest_class['class_name']} "
+            f"(F1={weakest_class['f1_score']:.4f})"
+
+        )
+
+    per_class_table = pd.DataFrame(metric_rows)
+
+    per_class_table = per_class_table.sort_values(
+        ["model", "class_name"]
+    ).reset_index(drop=True)
+
+    OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+    long_output_path = (
+        OUTPUT_DIRECTORY / "per_class_metrics_long.csv"
+    )
+
+    per_class_table.to_csv(long_output_path, index=False,
+
+    )
+
+    f1_comparison = per_class_table.pivot(
+        index="class_name",
+        columns="model",
+        values="f1_score",
+    ).reset_index()
+
+    comparison_output_path = (
+        OUTPUT_DIRECTORY / "per_class_f1_comparison.csv"
+    )
+
+    f1_comparison.to_csv(comparison_output_path, index=False)
+
+    print("\nSaved per-class metrics to: "
+          f"{long_output_path.relative_to(PROJECT_ROOT)}")
+
+    print(
+        "Saved per-class F1 comparison to: "
+        f"{comparison_output_path.relative_to(PROJECT_ROOT)}"
+    )
+
+    return per_class_table
+
+
+
+
+
 def main() -> None:
     inspect_input_files()
     model_data = load_and_validate_model_data()
 
     calculate_overall_metrics(model_data=model_data)
+    calculate_per_class_metrics(model_data=model_data)
 
 if __name__ == "__main__":
     main()

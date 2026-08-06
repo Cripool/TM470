@@ -30,6 +30,14 @@ RESNET_CHECKPOINT = (
     / "resnet18_model.pth"
 )
 
+MOBILENET_CHECKPOINT = (
+    PROJECT_ROOT
+    / "results"
+    / "MobileNetV2"
+    / "run_12062026_193343"
+    / "MobileNetV2_model.pth"
+)
+
 CLASS_NAMES = [
     "Agaricus",
     "Amanita",
@@ -186,6 +194,40 @@ def load_resnet_model() -> nn.Module:
 
     return model
 
+@st.cache_resource
+def load_mobilenet_model() -> nn.Module:
+    """
+    Load the final from-scratch MobileNetV2 checkpoint.
+    """
+
+    if not MOBILENET_CHECKPOINT.exists():
+        raise FileNotFoundError(
+            "MobileNetV2 checkpoint not found at: "
+            f"{MOBILENET_CHECKPOINT}"
+        )
+
+    model = models.mobilenet_v2(
+        weights=None
+    )
+
+    model.classifier[1] = nn.Linear(
+        model.classifier[1].in_features,
+        len(CLASS_NAMES),
+    )
+
+    model.load_state_dict(
+        torch.load(
+            MOBILENET_CHECKPOINT,
+            map_location=DEVICE,
+            weights_only=True,
+        )
+    )
+
+    model = model.to(DEVICE)
+    model.eval()
+
+    return model
+
 def predict_with_baseline(
     image: Image.Image,
 ) -> tuple[str, float, float]:
@@ -239,6 +281,55 @@ def predict_with_resnet(
     """
 
     model = load_resnet_model()
+
+    image_tensor = IMAGE_TRANSFORM(
+        image
+    ).unsqueeze(0).to(DEVICE)
+
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+
+    start_time = time.perf_counter()
+
+    with torch.no_grad():
+        output = model(image_tensor)
+
+        probabilities = torch.softmax(
+            output,
+            dim=1,
+        )
+
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+
+    inference_time_ms = (
+        time.perf_counter() - start_time
+    ) * 1000
+
+    confidence, predicted_index = torch.max(
+        probabilities,
+        dim=1,
+    )
+
+    predicted_class = CLASS_NAMES[
+        predicted_index.item()
+    ]
+
+    return (
+        predicted_class,
+        confidence.item(),
+        inference_time_ms,
+    )
+
+
+def predict_with_mobilenet(
+    image: Image.Image,
+) -> tuple[str, float, float]:
+    """
+    Run the uploaded image through MobileNetV2.
+    """
+
+    model = load_mobilenet_model()
 
     image_tensor = IMAGE_TRANSFORM(
         image
@@ -361,6 +452,24 @@ if uploaded_file is not None:
         st.columns(3)
     )
 
+    try:
+        (
+            mobilenet_prediction,
+            mobilenet_confidence,
+            mobilenet_time_ms,
+        ) = predict_with_mobilenet(image)
+
+    except Exception as error:
+        mobilenet_prediction = None
+        mobilenet_confidence = None
+        mobilenet_time_ms = None
+
+        st.error(
+            "MobileNetV2 could not be loaded or executed."
+        )
+
+        st.exception(error)
+
     with baseline_column:
         st.markdown("### Baseline CNN")
 
@@ -383,7 +492,7 @@ if uploaded_file is not None:
             st.error("Prediction unavailable")
 
     with resnet_column:
-        st.markdown("### Corrected ResNet18")
+        st.markdown("### ResNet18")
 
         if resnet_prediction is not None:
             st.success(
@@ -405,4 +514,21 @@ if uploaded_file is not None:
 
     with mobilenet_column:
         st.markdown("### MobileNetV2")
-        st.info("Model connection in progress")
+
+        if mobilenet_prediction is not None:
+            st.success(
+                f"Prediction: {mobilenet_prediction}"
+            )
+
+            st.metric(
+                "Confidence",
+                f"{mobilenet_confidence * 100:.2f}%",
+            )
+
+            st.metric(
+                "Inference time",
+                f"{mobilenet_time_ms:.2f} ms",
+            )
+
+        else:
+            st.error("Prediction unavailable")

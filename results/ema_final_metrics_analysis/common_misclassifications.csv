@@ -1,0 +1,276 @@
+model,rank,true_label,predicted_label,error_count,percentage_of_model_errors
+Baseline CNN,1,Lactarius,Boletus,35,4.922644163150492
+Baseline CNN,2,Russula,Lactarius,30,4.219409282700422
+Baseline CNN,3,Russula,Boletus,26,3.6568213783403656
+Baseline CNN,4,Lactarius,Russula,24,3.375527426160337
+Baseline CNN,5,Cortinarius,Boletus,24,3.375527426160337
+Baseline CNN,6,Amanita,Lactarius,21,2.9535864978902953
+Baseline CNN,7,Lactarius,Cortinarius,21,2.9535864978902953
+Baseline CNN,8,Boletus,Lactarius,18,2.5316455696202533
+Baseline CNN,9,Boletus,Cortinarius,18,2.5316455696202533
+Baseline CNN,10,Russula,Cortinarius,18,2.5316455696202533
+Baseline CNN,11,Amanita,Russula,17,2.390998593530239
+Baseline CNN,12,Amanita,Boletus,15,2.109704641350211
+Baseline CNN,13,Inocybe,Cortinarius,15,2.109704641350211
+Baseline CNN,14,Lactarius,Suillus,14,1.969057665260197
+Baseline CNN,15,Cortinarius,Russula,13,1.8284106891701828
+Baseline CNN,16,Cortinarius,Lactarius,13,1.8284106891701828
+Baseline CNN,17,Inocybe,Lactarius,13,1.8284106891701828
+Baseline CNN,18,Suillus,Lactarius,12,1.6877637130801686
+Baseline CNN,19,Lactarius,Agaricus,12,1.6877637130801686
+Baseline CNN,20,Suillus,Cortinarius,11,1.5471167369901548
+Baseline CNN,21,Exidia,Inocybe,11,1.5471167369901548
+Baseline CNN,22,Entoloma,Lactarius,11,1.5471167369901548
+Baseline CNN,23,Lactarius,Amanita,10,1.4064697609001406
+Baseline CNN,24,Hygrocybe,Cortinarius,10,1.4064697609001406
+Baseline CNN,25,Russula,Agaricus,10,1.4064697609001406
+Baseline CNN,26,Amanita,Agaricus,9,1.2658227848101267
+Baseline CNN,27,Agaricus,Lactarius,9,1.2658227848101267
+Baseline CNN,28,Amanita,Cortinarius,9,1.2658227848101267
+Baseline CNN,29,Agaricus,Cortinarius,9,1.2658227848101267
+Baseline CNN,30,Russula,Amanita,9,1.2658227848101267
+Baseline CNN,31,Agaricus,Amanita,9,1.2658227848101267
+Baseline CNN,32,Suillus,Boletus,8,1.1251758087201125
+Baseline CNN,33,Inocybe,Russula,8,1.1251758087201125
+Baseline CNN,34,Hygrocybe,Boletus,8,1.1251758087201125
+Baseline CNN,35,Entoloma,Boletus,8,1.1251758087201125
+Baseline CNN,36,Cortinarius,Suillus,7,0.9845288326300985
+Baseline CNN,37,Hygrocybe,Lactarius,7,0.9845288326300985
+Baseline CNN,38,Inocybe,Suillus,7,0.9845288326300985
+Baseline CNN,39,Agaricus,Russula,7,0.9845288326300985
+Baseline CNN,40,Boletus,Russula,6,0.8438818565400843
+Baseline CNN,41,Exidia,Lactarius,6,0.8438818565400843
+Baseline CNN,42,Entoloma,Amanita,6,0.8438818565400843
+Baseline CNN,43,Entoloma,Cortinarius,6,0.8438818565400843
+Baseline CNN,44,Suillus,Russula,6,0.8438818565400843
+Baseline CNN,45,Russula,Entoloma,5,0.7032348804500703
+Baseline CNN,46,Entoloma,Russula,5,0.7032348804500703
+Baseline CNN,47,Inocybe,Boletus,5,0.7032348804500703
+Baseline CNN,48,Russula,Inocybe,5,0.7032348804500703
+Baseline CNN,49,Inocybe,Entoloma,5,0.7032348804500703
+Baseline CNN,50,Inocybe,Exidia,5,0.7032348804500703
+Baseline CNN,51,Cortinarius,Hygrocybe,5,0.7032348804500703
+Baseline CNN,52,Cortinarius,Amanita,5,0.7032348804500703
+Baseline CNN,53,Amanita,Entoloma,5,0.7032348804500703
+Baseline CNN,54,Russula,Suillus,5,0.7032348804500703
+Baseline CNN,55,Boletus,Inocybe,4,0.5625879043600562
+Baseline CNN,56,Lactarius,Inocybe,4,0.5625879043600562
+Baseline CNN,57,Hygrocybe,Suillus,4,0.5625879043600562
+Baseline CNN,58,Exidia,Entoloma,4,0.5625879043600562
+Baseline CNN,59,Entoloma,Agaricus,4,0.5625879043600562
+Baseline CNN,60,Boletus,Amanita,4,0.5625879043600562
+Baseline CNN,61,Russula,Hygrocybe,3,0.42194092827004215
+Baseline CNN,62,Cortinarius,Inocybe,3,0.42194092827004215
+Baseline CNN,63,Cortinarius,Entoloma,3,0.42194092827004215
+Baseline CNN,64,Cortinarius,Exidia,3,0.42194092827004215
+Baseline CNN,65,Exidia,Boletus,3,0.42194092827004215
+Baseline CNN,66,Inocybe,Amanita,3,0.42194092827004215
+Baseline CNN,67,Lactarius,Exidia,3,0.42194092827004215
+Baseline CNN,68,Exidia,Cortinarius,3,0.42194092827004215
+Baseline CNN,69,Russula,Exidia,2,0.2812939521800281
+Baseline CNN,70,Entoloma,Suillus,2,0.2812939521800281
+Baseline CNN,71,Inocybe,Hygrocybe,2,0.2812939521800281
+Baseline CNN,72,Lactarius,Hygrocybe,2,0.2812939521800281
+Baseline CNN,73,Boletus,Suillus,2,0.2812939521800281
+Baseline CNN,74,Amanita,Exidia,2,0.2812939521800281
+Baseline CNN,75,Agaricus,Inocybe,2,0.2812939521800281
+Baseline CNN,76,Agaricus,Entoloma,2,0.2812939521800281
+Baseline CNN,77,Agaricus,Boletus,2,0.2812939521800281
+Baseline CNN,78,Hygrocybe,Entoloma,2,0.2812939521800281
+Baseline CNN,79,Entoloma,Inocybe,2,0.2812939521800281
+Baseline CNN,80,Boletus,Hygrocybe,2,0.2812939521800281
+Baseline CNN,81,Entoloma,Exidia,2,0.2812939521800281
+Baseline CNN,82,Suillus,Inocybe,2,0.2812939521800281
+Baseline CNN,83,Suillus,Entoloma,2,0.2812939521800281
+Baseline CNN,84,Suillus,Hygrocybe,2,0.2812939521800281
+Baseline CNN,85,Inocybe,Agaricus,2,0.2812939521800281
+Baseline CNN,86,Hygrocybe,Russula,2,0.2812939521800281
+Baseline CNN,87,Agaricus,Exidia,1,0.14064697609001406
+Baseline CNN,88,Amanita,Inocybe,1,0.14064697609001406
+Baseline CNN,89,Amanita,Suillus,1,0.14064697609001406
+Baseline CNN,90,Cortinarius,Agaricus,1,0.14064697609001406
+Baseline CNN,91,Boletus,Entoloma,1,0.14064697609001406
+Baseline CNN,92,Boletus,Exidia,1,0.14064697609001406
+Baseline CNN,93,Exidia,Amanita,1,0.14064697609001406
+Baseline CNN,94,Exidia,Russula,1,0.14064697609001406
+Baseline CNN,95,Hygrocybe,Inocybe,1,0.14064697609001406
+Baseline CNN,96,Entoloma,Hygrocybe,1,0.14064697609001406
+Baseline CNN,97,Suillus,Amanita,1,0.14064697609001406
+Resnet18_Corrected,1,Lactarius,Russula,55,9.632224168126093
+Resnet18_Corrected,2,Cortinarius,Lactarius,33,5.779334500875657
+Resnet18_Corrected,3,Russula,Lactarius,29,5.078809106830122
+Resnet18_Corrected,4,Agaricus,Russula,23,4.028021015761821
+Resnet18_Corrected,5,Inocybe,Russula,22,3.852889667250438
+Resnet18_Corrected,6,Entoloma,Lactarius,19,3.327495621716287
+Resnet18_Corrected,7,Suillus,Lactarius,18,3.1523642732049035
+Resnet18_Corrected,8,Cortinarius,Russula,18,3.1523642732049035
+Resnet18_Corrected,9,Amanita,Russula,17,2.9772329246935203
+Resnet18_Corrected,10,Boletus,Lactarius,16,2.8021015761821366
+Resnet18_Corrected,11,Cortinarius,Inocybe,12,2.1015761821366024
+Resnet18_Corrected,12,Inocybe,Lactarius,11,1.926444833625219
+Resnet18_Corrected,13,Exidia,Inocybe,10,1.7513134851138354
+Resnet18_Corrected,14,Lactarius,Amanita,10,1.7513134851138354
+Resnet18_Corrected,15,Entoloma,Russula,10,1.7513134851138354
+Resnet18_Corrected,16,Cortinarius,Suillus,10,1.7513134851138354
+Resnet18_Corrected,17,Amanita,Lactarius,10,1.7513134851138354
+Resnet18_Corrected,18,Boletus,Russula,10,1.7513134851138354
+Resnet18_Corrected,19,Lactarius,Inocybe,9,1.5761821366024518
+Resnet18_Corrected,20,Agaricus,Amanita,8,1.4010507880910683
+Resnet18_Corrected,21,Boletus,Amanita,8,1.4010507880910683
+Resnet18_Corrected,22,Inocybe,Amanita,7,1.2259194395796849
+Resnet18_Corrected,23,Amanita,Boletus,7,1.2259194395796849
+Resnet18_Corrected,24,Boletus,Inocybe,7,1.2259194395796849
+Resnet18_Corrected,25,Suillus,Inocybe,7,1.2259194395796849
+Resnet18_Corrected,26,Hygrocybe,Lactarius,7,1.2259194395796849
+Resnet18_Corrected,27,Exidia,Entoloma,6,1.0507880910683012
+Resnet18_Corrected,28,Cortinarius,Exidia,6,1.0507880910683012
+Resnet18_Corrected,29,Russula,Amanita,6,1.0507880910683012
+Resnet18_Corrected,30,Suillus,Boletus,6,1.0507880910683012
+Resnet18_Corrected,31,Hygrocybe,Russula,6,1.0507880910683012
+Resnet18_Corrected,32,Entoloma,Inocybe,6,1.0507880910683012
+Resnet18_Corrected,33,Amanita,Entoloma,6,1.0507880910683012
+Resnet18_Corrected,34,Russula,Inocybe,5,0.8756567425569177
+Resnet18_Corrected,35,Cortinarius,Amanita,5,0.8756567425569177
+Resnet18_Corrected,36,Agaricus,Boletus,5,0.8756567425569177
+Resnet18_Corrected,37,Amanita,Inocybe,5,0.8756567425569177
+Resnet18_Corrected,38,Boletus,Suillus,5,0.8756567425569177
+Resnet18_Corrected,39,Suillus,Russula,5,0.8756567425569177
+Resnet18_Corrected,40,Lactarius,Boletus,4,0.7005253940455342
+Resnet18_Corrected,41,Exidia,Russula,4,0.7005253940455342
+Resnet18_Corrected,42,Exidia,Amanita,4,0.7005253940455342
+Resnet18_Corrected,43,Cortinarius,Hygrocybe,4,0.7005253940455342
+Resnet18_Corrected,44,Lactarius,Suillus,4,0.7005253940455342
+Resnet18_Corrected,45,Lactarius,Agaricus,3,0.5253940455341506
+Resnet18_Corrected,46,Russula,Suillus,3,0.5253940455341506
+Resnet18_Corrected,47,Russula,Boletus,3,0.5253940455341506
+Resnet18_Corrected,48,Lactarius,Cortinarius,3,0.5253940455341506
+Resnet18_Corrected,49,Boletus,Cortinarius,3,0.5253940455341506
+Resnet18_Corrected,50,Amanita,Cortinarius,3,0.5253940455341506
+Resnet18_Corrected,51,Agaricus,Lactarius,3,0.5253940455341506
+Resnet18_Corrected,52,Russula,Entoloma,3,0.5253940455341506
+Resnet18_Corrected,53,Lactarius,Entoloma,3,0.5253940455341506
+Resnet18_Corrected,54,Hygrocybe,Cortinarius,3,0.5253940455341506
+Resnet18_Corrected,55,Exidia,Lactarius,3,0.5253940455341506
+Resnet18_Corrected,56,Exidia,Cortinarius,3,0.5253940455341506
+Resnet18_Corrected,57,Entoloma,Boletus,3,0.5253940455341506
+Resnet18_Corrected,58,Entoloma,Amanita,3,0.5253940455341506
+Resnet18_Corrected,59,Cortinarius,Agaricus,3,0.5253940455341506
+Resnet18_Corrected,60,Inocybe,Agaricus,2,0.3502626970227671
+Resnet18_Corrected,61,Inocybe,Cortinarius,2,0.3502626970227671
+Resnet18_Corrected,62,Inocybe,Exidia,2,0.3502626970227671
+Resnet18_Corrected,63,Agaricus,Entoloma,2,0.3502626970227671
+Resnet18_Corrected,64,Amanita,Agaricus,2,0.3502626970227671
+Resnet18_Corrected,65,Russula,Cortinarius,2,0.3502626970227671
+Resnet18_Corrected,66,Inocybe,Entoloma,2,0.3502626970227671
+Resnet18_Corrected,67,Lactarius,Hygrocybe,2,0.3502626970227671
+Resnet18_Corrected,68,Cortinarius,Boletus,2,0.3502626970227671
+Resnet18_Corrected,69,Hygrocybe,Inocybe,2,0.3502626970227671
+Resnet18_Corrected,70,Hygrocybe,Suillus,2,0.3502626970227671
+Resnet18_Corrected,71,Hygrocybe,Entoloma,2,0.3502626970227671
+Resnet18_Corrected,72,Agaricus,Cortinarius,1,0.17513134851138354
+Resnet18_Corrected,73,Boletus,Entoloma,1,0.17513134851138354
+Resnet18_Corrected,74,Boletus,Exidia,1,0.17513134851138354
+Resnet18_Corrected,75,Amanita,Hygrocybe,1,0.17513134851138354
+Resnet18_Corrected,76,Agaricus,Suillus,1,0.17513134851138354
+Resnet18_Corrected,77,Agaricus,Exidia,1,0.17513134851138354
+Resnet18_Corrected,78,Entoloma,Agaricus,1,0.17513134851138354
+Resnet18_Corrected,79,Cortinarius,Entoloma,1,0.17513134851138354
+Resnet18_Corrected,80,Entoloma,Hygrocybe,1,0.17513134851138354
+Resnet18_Corrected,81,Hygrocybe,Amanita,1,0.17513134851138354
+Resnet18_Corrected,82,Exidia,Agaricus,1,0.17513134851138354
+Resnet18_Corrected,83,Entoloma,Cortinarius,1,0.17513134851138354
+Resnet18_Corrected,84,Inocybe,Hygrocybe,1,0.17513134851138354
+Resnet18_Corrected,85,Inocybe,Boletus,1,0.17513134851138354
+Resnet18_Corrected,86,Suillus,Cortinarius,1,0.17513134851138354
+Resnet18_Corrected,87,Suillus,Entoloma,1,0.17513134851138354
+Resnet18_Corrected,88,Suillus,Hygrocybe,1,0.17513134851138354
+MobileNetV2,1,Lactarius,Russula,54,8.571428571428571
+MobileNetV2,2,Lactarius,Boletus,37,5.873015873015873
+MobileNetV2,3,Lactarius,Cortinarius,30,4.761904761904762
+MobileNetV2,4,Inocybe,Cortinarius,24,3.8095238095238098
+MobileNetV2,5,Cortinarius,Boletus,19,3.015873015873016
+MobileNetV2,6,Russula,Lactarius,18,2.857142857142857
+MobileNetV2,7,Lactarius,Amanita,18,2.857142857142857
+MobileNetV2,8,Agaricus,Amanita,17,2.6984126984126986
+MobileNetV2,9,Russula,Boletus,16,2.5396825396825395
+MobileNetV2,10,Suillus,Boletus,16,2.5396825396825395
+MobileNetV2,11,Russula,Cortinarius,12,1.9047619047619049
+MobileNetV2,12,Amanita,Lactarius,11,1.746031746031746
+MobileNetV2,13,Cortinarius,Russula,11,1.746031746031746
+MobileNetV2,14,Amanita,Cortinarius,11,1.746031746031746
+MobileNetV2,15,Entoloma,Cortinarius,11,1.746031746031746
+MobileNetV2,16,Entoloma,Lactarius,11,1.746031746031746
+MobileNetV2,17,Cortinarius,Lactarius,10,1.5873015873015872
+MobileNetV2,18,Suillus,Cortinarius,10,1.5873015873015872
+MobileNetV2,19,Amanita,Russula,10,1.5873015873015872
+MobileNetV2,20,Amanita,Boletus,10,1.5873015873015872
+MobileNetV2,21,Agaricus,Boletus,10,1.5873015873015872
+MobileNetV2,22,Entoloma,Russula,9,1.4285714285714286
+MobileNetV2,23,Inocybe,Lactarius,9,1.4285714285714286
+MobileNetV2,24,Agaricus,Russula,9,1.4285714285714286
+MobileNetV2,25,Cortinarius,Amanita,8,1.2698412698412698
+MobileNetV2,26,Russula,Inocybe,8,1.2698412698412698
+MobileNetV2,27,Inocybe,Amanita,8,1.2698412698412698
+MobileNetV2,28,Entoloma,Amanita,8,1.2698412698412698
+MobileNetV2,29,Cortinarius,Hygrocybe,8,1.2698412698412698
+MobileNetV2,30,Inocybe,Russula,8,1.2698412698412698
+MobileNetV2,31,Boletus,Cortinarius,7,1.1111111111111112
+MobileNetV2,32,Exidia,Cortinarius,7,1.1111111111111112
+MobileNetV2,33,Inocybe,Exidia,7,1.1111111111111112
+MobileNetV2,34,Lactarius,Inocybe,6,0.9523809523809524
+MobileNetV2,35,Entoloma,Boletus,6,0.9523809523809524
+MobileNetV2,36,Exidia,Inocybe,6,0.9523809523809524
+MobileNetV2,37,Cortinarius,Inocybe,6,0.9523809523809524
+MobileNetV2,38,Agaricus,Lactarius,6,0.9523809523809524
+MobileNetV2,39,Hygrocybe,Cortinarius,5,0.7936507936507936
+MobileNetV2,40,Boletus,Amanita,5,0.7936507936507936
+MobileNetV2,41,Boletus,Lactarius,5,0.7936507936507936
+MobileNetV2,42,Suillus,Hygrocybe,5,0.7936507936507936
+MobileNetV2,43,Inocybe,Boletus,5,0.7936507936507936
+MobileNetV2,44,Hygrocybe,Lactarius,5,0.7936507936507936
+MobileNetV2,45,Suillus,Russula,5,0.7936507936507936
+MobileNetV2,46,Exidia,Boletus,4,0.6349206349206349
+MobileNetV2,47,Agaricus,Cortinarius,4,0.6349206349206349
+MobileNetV2,48,Lactarius,Hygrocybe,4,0.6349206349206349
+MobileNetV2,49,Russula,Amanita,4,0.6349206349206349
+MobileNetV2,50,Inocybe,Agaricus,4,0.6349206349206349
+MobileNetV2,51,Amanita,Hygrocybe,4,0.6349206349206349
+MobileNetV2,52,Amanita,Inocybe,4,0.6349206349206349
+MobileNetV2,53,Amanita,Exidia,3,0.4761904761904762
+MobileNetV2,54,Cortinarius,Agaricus,3,0.4761904761904762
+MobileNetV2,55,Lactarius,Agaricus,3,0.4761904761904762
+MobileNetV2,56,Russula,Hygrocybe,3,0.4761904761904762
+MobileNetV2,57,Boletus,Exidia,3,0.4761904761904762
+MobileNetV2,58,Boletus,Russula,3,0.4761904761904762
+MobileNetV2,59,Russula,Exidia,3,0.4761904761904762
+MobileNetV2,60,Entoloma,Inocybe,3,0.4761904761904762
+MobileNetV2,61,Hygrocybe,Russula,3,0.4761904761904762
+MobileNetV2,62,Lactarius,Suillus,3,0.4761904761904762
+MobileNetV2,63,Cortinarius,Exidia,3,0.4761904761904762
+MobileNetV2,64,Suillus,Lactarius,3,0.4761904761904762
+MobileNetV2,65,Lactarius,Exidia,3,0.4761904761904762
+MobileNetV2,66,Agaricus,Exidia,2,0.31746031746031744
+MobileNetV2,67,Entoloma,Hygrocybe,2,0.31746031746031744
+MobileNetV2,68,Inocybe,Hygrocybe,2,0.31746031746031744
+MobileNetV2,69,Suillus,Inocybe,2,0.31746031746031744
+MobileNetV2,70,Russula,Suillus,2,0.31746031746031744
+MobileNetV2,71,Amanita,Agaricus,2,0.31746031746031744
+MobileNetV2,72,Hygrocybe,Boletus,2,0.31746031746031744
+MobileNetV2,73,Exidia,Lactarius,2,0.31746031746031744
+MobileNetV2,74,Entoloma,Exidia,2,0.31746031746031744
+MobileNetV2,75,Suillus,Amanita,2,0.31746031746031744
+MobileNetV2,76,Hygrocybe,Amanita,2,0.31746031746031744
+MobileNetV2,77,Boletus,Entoloma,1,0.15873015873015872
+MobileNetV2,78,Agaricus,Hygrocybe,1,0.15873015873015872
+MobileNetV2,79,Boletus,Hygrocybe,1,0.15873015873015872
+MobileNetV2,80,Boletus,Inocybe,1,0.15873015873015872
+MobileNetV2,81,Exidia,Amanita,1,0.15873015873015872
+MobileNetV2,82,Cortinarius,Suillus,1,0.15873015873015872
+MobileNetV2,83,Hygrocybe,Suillus,1,0.15873015873015872
+MobileNetV2,84,Exidia,Entoloma,1,0.15873015873015872
+MobileNetV2,85,Exidia,Hygrocybe,1,0.15873015873015872
+MobileNetV2,86,Exidia,Russula,1,0.15873015873015872
+MobileNetV2,87,Entoloma,Agaricus,1,0.15873015873015872
+MobileNetV2,88,Lactarius,Entoloma,1,0.15873015873015872
+MobileNetV2,89,Suillus,Agaricus,1,0.15873015873015872
+MobileNetV2,90,Suillus,Exidia,1,0.15873015873015872

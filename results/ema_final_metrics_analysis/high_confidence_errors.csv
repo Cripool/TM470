@@ -1,0 +1,61 @@
+model,error_rank,relative_image_path,true_label,predicted_label,confidence,inference_time_sec
+Baseline CNN,1,Inocybe/RE2012PIC39126061.jpg,Inocybe,Boletus,1.0,0.0085419999959412
+Baseline CNN,2,Cortinarius/449_VlvWf0y620o.jpg,Cortinarius,Exidia,0.9999998807907104,0.0026252000097883
+Baseline CNN,3,Agaricus/323_5Es9oQ3LeGk.jpg,Agaricus,Cortinarius,0.9999793767929076,0.002923499996541
+Baseline CNN,4,Russula/170_8gD6VgBIRW8.jpg,Russula,Boletus,0.999968409538269,0.0025705000007292
+Baseline CNN,5,Boletus/1036_4kWl9z7sQIY.jpg,Boletus,Inocybe,0.9999328851699828,0.0024284999963128
+Baseline CNN,6,Inocybe/TS2012PIC31340902.jpg,Inocybe,Cortinarius,0.9999221563339232,0.003668799996376
+Baseline CNN,7,Hygrocybe/230_yk2KrQJOQS8.jpg,Hygrocybe,Lactarius,0.9999148845672609,0.0025804000033531
+Baseline CNN,8,Lactarius/0360_Bfw8PtjOZoI.jpg,Lactarius,Boletus,0.9998825788497924,0.0027198000025236
+Baseline CNN,9,Entoloma/192_Tf_A1Q4bdco.jpg,Entoloma,Boletus,0.999874234199524,0.0029982999985804
+Baseline CNN,10,Suillus/287_uBlS4Qgx1HQ.jpg,Suillus,Lactarius,0.999855637550354,0.0028149999998277
+Baseline CNN,11,Hygrocybe/107_8A2HnEVmiKo.jpg,Hygrocybe,Boletus,0.9998351335525512,0.002621799998451
+Baseline CNN,12,Cortinarius/713_0K-WK89enpQ.jpg,Cortinarius,Boletus,0.999830961227417,0.0054918999958317
+Baseline CNN,13,Amanita/561_E5bsDlNUJ-Y.jpg,Amanita,Boletus,0.999756157398224,0.0028808999923057
+Baseline CNN,14,Inocybe/DB2013PIC42730442.jpg,Inocybe,Cortinarius,0.999749481678009,0.0050829999963752
+Baseline CNN,15,Entoloma/053_pGhgq2L9_f8.jpg,Entoloma,Boletus,0.9996923208236694,0.0025603999965824
+Baseline CNN,16,Entoloma/225_3YNITN-NtWM.jpg,Entoloma,Amanita,0.99956613779068,0.0029699999868171
+Baseline CNN,17,Exidia/JAH2012PIC89993887.jpg,Exidia,Inocybe,0.9993952512741088,0.0026892000023508
+Baseline CNN,18,Cortinarius/034_uFEs0KR55hA.jpg,Cortinarius,Boletus,0.9993213415145874,0.0025745999882929
+Baseline CNN,19,Hygrocybe/070_WNKPUMir-JY.jpg,Hygrocybe,Lactarius,0.9992927312850952,0.0026410999998915
+Baseline CNN,20,Boletus/0654_S0ZETeWMBPU.jpg,Boletus,Cortinarius,0.9992483258247375,0.0026652999949874
+Resnet18_Corrected,1,Cortinarius/449_VlvWf0y620o.jpg,Cortinarius,Exidia,0.9813432097434998,0.002816399995936
+Resnet18_Corrected,2,Amanita/245_hJy0oklu5jA.jpg,Amanita,Boletus,0.9795719981193542,0.0025840999951469
+Resnet18_Corrected,3,Lactarius/253_04FkFVirQ7Y.jpg,Lactarius,Russula,0.9770400524139404,0.0042358999999123
+Resnet18_Corrected,4,Cortinarius/838_phOn4HpRGFU.jpg,Cortinarius,Inocybe,0.9690300226211548,0.0025565000032656
+Resnet18_Corrected,5,Agaricus/129_E1FD01dZMiw.jpg,Agaricus,Russula,0.958174169063568,0.0025410000016563
+Resnet18_Corrected,6,Lactarius/0576_5wNWaAeW6vo.jpg,Lactarius,Russula,0.9500208497047424,0.002485400000296
+Resnet18_Corrected,7,Lactarius/1112_BjWWPLj9vfs.jpg,Lactarius,Russula,0.949964702129364,0.0025229000020772
+Resnet18_Corrected,8,Lactarius/1087_T-XOvJDzPj4.jpg,Lactarius,Russula,0.949964702129364,0.0026146000018343
+Resnet18_Corrected,9,Lactarius/1102_LESYYltPhNw.jpg,Lactarius,Russula,0.94635009765625,0.0025425000058021
+Resnet18_Corrected,10,Boletus/0941_CD55o3j2ACk.jpg,Boletus,Russula,0.9293563961982728,0.0041144999995594
+Resnet18_Corrected,11,Agaricus/131_YrsaHYXAieo.jpg,Agaricus,Russula,0.928535521030426,0.0025562000009813
+Resnet18_Corrected,12,Lactarius/0793_0GzeXD2rqQY.jpg,Lactarius,Russula,0.9247621297836304,0.0041958000001613
+Resnet18_Corrected,13,Agaricus/162_19HDdc3YjRs.jpg,Agaricus,Russula,0.9221653342247008,0.0025760999997146
+Resnet18_Corrected,14,Hygrocybe/227_L3z3XTxXk78.jpg,Hygrocybe,Russula,0.9198718070983888,0.002577300001576
+Resnet18_Corrected,15,Suillus/246_dDYtt6MpmiI.jpg,Suillus,Boletus,0.9189375638961792,0.0042667000016081
+Resnet18_Corrected,16,Hygrocybe/032_DZ1xy6htm0M.jpg,Hygrocybe,Russula,0.9185827374458312,0.0041426999960094
+Resnet18_Corrected,17,Hygrocybe/188_5IJ0j3yYEyk.jpg,Hygrocybe,Russula,0.9066563844680786,0.0025607999996282
+Resnet18_Corrected,18,Suillus/063_DU3VJmB-I14.jpg,Suillus,Lactarius,0.9036952257156372,0.002640099999553
+Resnet18_Corrected,19,Lactarius/136_2lSzCzGC8cs.jpg,Lactarius,Russula,0.901258647441864,0.0041342000040458
+Resnet18_Corrected,20,Russula/590_uV2vuMobSEM.jpg,Russula,Lactarius,0.8993988037109375,0.0025261999981012
+MobileNetV2,1,Lactarius/0385_zeoDavzC8Ec.jpg,Lactarius,Boletus,0.9988349080085754,0.0095880000008037
+MobileNetV2,2,Amanita/143_ZpRWUcr7GhA.jpg,Amanita,Boletus,0.9965009689331056,0.008451599998807
+MobileNetV2,3,Suillus/124_A3Rr6EGcEuc.jpg,Suillus,Boletus,0.995633065700531,0.01030449999962
+MobileNetV2,4,Lactarius/365_gihWtePuGlo.jpg,Lactarius,Russula,0.9918225407600404,0.0070892000003368
+MobileNetV2,5,Russula/170_8gD6VgBIRW8.jpg,Russula,Boletus,0.990481436252594,0.0084715000011783
+MobileNetV2,6,Suillus/246_dDYtt6MpmiI.jpg,Suillus,Boletus,0.9904678463935852,0.0072111999998014
+MobileNetV2,7,Suillus/228_LjjB-u2A1pU.jpg,Suillus,Boletus,0.989763617515564,0.0071972999994613
+MobileNetV2,8,Lactarius/0941_SIWGBlVT-DI.jpg,Lactarius,Boletus,0.9872007369995116,0.007379700000456
+MobileNetV2,9,Lactarius/0036_UjqjlkUecEk.jpg,Lactarius,Russula,0.9861949682235718,0.0081367999991925
+MobileNetV2,10,Cortinarius/950_HDskNFXm9xc.jpg,Cortinarius,Boletus,0.984876275062561,0.0112481000014668
+MobileNetV2,11,Cortinarius/665_CnMbFwJ4A3g.jpg,Cortinarius,Boletus,0.9837437272071838,0.0099941999997099
+MobileNetV2,12,Lactarius/069_WjmaRv5colU.jpg,Lactarius,Russula,0.981937289237976,0.006902799999807
+MobileNetV2,13,Cortinarius/932_wke3BS09elk.jpg,Cortinarius,Russula,0.9798545241355896,0.0094637000001966
+MobileNetV2,14,Entoloma/217_MQnUltdhEsM.jpg,Entoloma,Russula,0.973136067390442,0.00851750000038
+MobileNetV2,15,Lactarius/1119_97YWRRfAMdE.jpg,Lactarius,Russula,0.9724616408348083,0.0080673000011302
+MobileNetV2,16,Lactarius/0811_fny9MwqLlJQ.jpg,Lactarius,Boletus,0.9702385663986206,0.0067165999989811
+MobileNetV2,17,Lactarius/1104_Top2jkbHf3c.jpg,Lactarius,Russula,0.965968906879425,0.0126068000008672
+MobileNetV2,18,Lactarius/0147_ZAySZ3Wkn8k.jpg,Lactarius,Hygrocybe,0.9627059102058412,0.0070412999994005
+MobileNetV2,19,Lactarius/1087_T-XOvJDzPj4.jpg,Lactarius,Russula,0.9608378410339355,0.0076229999995121
+MobileNetV2,20,Lactarius/1112_BjWWPLj9vfs.jpg,Lactarius,Russula,0.9608378410339355,0.0074583000005077

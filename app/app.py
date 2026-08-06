@@ -9,7 +9,7 @@ import streamlit as st
 import torch
 import torch.nn as nn
 from PIL import Image
-from torchvision import transforms
+from torchvision import transforms, models
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +20,14 @@ BASELINE_CHECKPOINT = (
     / "baseline"
     / "run_10062026_191445"
     / "baseline_model.pth"
+)
+
+RESNET_CHECKPOINT = (
+    PROJECT_ROOT
+    / "results"
+    / "resnet18_corrected"
+    / "run_24072026_215002"
+    / "resnet18_model.pth"
 )
 
 CLASS_NAMES = [
@@ -144,6 +152,39 @@ def load_baseline_model() -> BaselineCNN:
 
     return model
 
+@st.cache_resource
+def load_resnet_model() -> nn.Module:
+    """
+    Load the final corrected ResNet18 checkpoint.
+    """
+
+    if not RESNET_CHECKPOINT.exists():
+        raise FileNotFoundError(
+            "Corrected ResNet18 checkpoint not found at: "
+            f"{RESNET_CHECKPOINT}"
+        )
+
+    model = models.resnet18(
+        weights=None
+    )
+
+    model.fc = nn.Linear(
+        model.fc.in_features,
+        len(CLASS_NAMES),
+    )
+
+    model.load_state_dict(
+        torch.load(
+            RESNET_CHECKPOINT,
+            map_location=DEVICE,
+            weights_only=True,
+        )
+    )
+
+    model = model.to(DEVICE)
+    model.eval()
+
+    return model
 
 def predict_with_baseline(
     image: Image.Image,
@@ -190,6 +231,53 @@ def predict_with_baseline(
         inference_time_ms,
     )
 
+def predict_with_resnet(
+    image: Image.Image,
+) -> tuple[str, float, float]:
+    """
+    Run the uploaded image through the corrected ResNet18.
+    """
+
+    model = load_resnet_model()
+
+    image_tensor = IMAGE_TRANSFORM(
+        image
+    ).unsqueeze(0).to(DEVICE)
+
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+
+    start_time = time.perf_counter()
+
+    with torch.no_grad():
+        output = model(image_tensor)
+
+        probabilities = torch.softmax(
+            output,
+            dim=1,
+        )
+
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+
+    inference_time_ms = (
+        time.perf_counter() - start_time
+    ) * 1000
+
+    confidence, predicted_index = torch.max(
+        probabilities,
+        dim=1,
+    )
+
+    predicted_class = CLASS_NAMES[
+        predicted_index.item()
+    ]
+
+    return (
+        predicted_class,
+        confidence.item(),
+        inference_time_ms,
+    )
 
 st.set_page_config(
     page_title="CNN Mushroom Recognition Comparison",
@@ -251,6 +339,24 @@ if uploaded_file is not None:
 
         st.exception(error)
 
+    try:
+        (
+            resnet_prediction,
+            resnet_confidence,
+            resnet_time_ms,
+        ) = predict_with_resnet(image)
+
+    except Exception as error:
+        resnet_prediction = None
+        resnet_confidence = None
+        resnet_time_ms = None
+
+        st.error(
+            "The corrected ResNet18 could not be loaded or executed."
+        )
+
+        st.exception(error)
+
     baseline_column, resnet_column, mobilenet_column = (
         st.columns(3)
     )
@@ -278,7 +384,24 @@ if uploaded_file is not None:
 
     with resnet_column:
         st.markdown("### Corrected ResNet18")
-        st.info("Model connection in progress")
+
+        if resnet_prediction is not None:
+            st.success(
+                f"Prediction: {resnet_prediction}"
+            )
+
+            st.metric(
+                "Confidence",
+                f"{resnet_confidence * 100:.2f}%",
+            )
+
+            st.metric(
+                "Inference time",
+                f"{resnet_time_ms:.2f} ms",
+            )
+
+        else:
+            st.error("Prediction unavailable")
 
     with mobilenet_column:
         st.markdown("### MobileNetV2")

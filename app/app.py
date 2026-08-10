@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 from torchvision import transforms, models
+import time
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -241,6 +242,9 @@ def predict_with_baseline(
         image
     ).unsqueeze(0).to(DEVICE)
 
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+
     start_time = time.perf_counter()
 
     with torch.no_grad():
@@ -382,12 +386,20 @@ st.title(
 
 st.write(
     "Upload a mushroom image to compare predictions from the "
-    "Baseline CNN, corrected ResNet18 and MobileNetV2 models."
+    "Baseline CNN, corrected ResNet18 and MobileNetV2 models. "
+    "The models can only classify images into the 11 mushroom "
+    "genera used during training."
 )
 
+with st.expander("Supported mushroom classes"):
+    st.write(", ".join(CLASS_NAMES))
+
 st.warning(
-    "Academic demonstrator only. Do not use these predictions "
-    "to determine whether a mushroom is safe to touch or consume."
+    "Academic demonstrator only. The models always select the closest "
+    "matching class from the 11 trained mushroom genera and cannot "
+    "reliably recognise unsupported mushrooms or non-mushroom images. "
+    "Do not use these predictions to determine whether a mushroom is "
+    "safe to touch or consume."
 )
 
 st.caption(
@@ -395,7 +407,7 @@ st.caption(
 )
 
 uploaded_file = st.file_uploader(
-    "Upload a mushroom image",
+    "Upload an image for model comparison",
     type=["jpg", "jpeg", "png"],
 )
 
@@ -406,11 +418,13 @@ if uploaded_file is not None:
 
     st.image(
         image,
-        caption="Uploaded mushroom image",
+        caption="Uploaded image",
         width=400,
     )
 
     st.subheader("Model predictions")
+
+    overall_start = time.perf_counter()
 
     try:
         (
@@ -469,13 +483,19 @@ if uploaded_file is not None:
         )
 
         st.exception(error)
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+
+        total_processing_time_ms = (
+            time.perf_counter() - overall_start
+            ) * 1000
 
     with baseline_column:
         st.markdown("### Baseline CNN")
 
         if baseline_prediction is not None:
             st.success(
-                f"Prediction: {baseline_prediction}"
+                f"Closest trained class: {baseline_prediction}"
             )
 
             st.metric(
@@ -496,7 +516,7 @@ if uploaded_file is not None:
 
         if resnet_prediction is not None:
             st.success(
-                f"Prediction: {resnet_prediction}"
+                f"Closest trained class: {resnet_prediction}"
             )
 
             st.metric(
@@ -517,7 +537,7 @@ if uploaded_file is not None:
 
         if mobilenet_prediction is not None:
             st.success(
-                f"Prediction: {mobilenet_prediction}"
+                f"Closest trained class: {mobilenet_prediction}"
             )
 
             st.metric(
@@ -532,3 +552,10 @@ if uploaded_file is not None:
 
         else:
             st.error("Prediction unavailable")
+
+    st.markdown("---")
+
+    st.metric(
+        "Total Processing Time",
+        f"{total_processing_time_ms:.2f} ms",
+    )

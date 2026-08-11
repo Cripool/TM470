@@ -4,14 +4,14 @@ Streamlit mushroom image-recognition demonstrator for the TM470 EMA.
 
 from pathlib import Path
 import time
-
+from datetime import datetime, timezone
 import streamlit as st
 import torch
 import torch.nn as nn
 from PIL import Image
 from torchvision import transforms, models
-import time
-
+import uuid
+from supabase import create_client, Client
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -131,6 +131,25 @@ class BaselineCNN(nn.Module):
 
         return image_tensor
 
+@st.cache_resource
+def get_supabase_client() -> Client:
+    return create_client(
+        st.secrets["supabase"]["url"],
+        st.secrets["supabase"]["key"],
+    )
+
+def save_test_result(test_result: dict):
+    supabase = get_supabase_client()
+
+    response = (
+        supabase
+        .table("user_test_results")
+        .insert(test_result,
+                returning="minimal",)
+        .execute()
+    )
+
+    return response
 
 @st.cache_resource
 def load_baseline_model() -> BaselineCNN:
@@ -380,8 +399,121 @@ st.set_page_config(
     layout="wide",
 )
 
+if "participant_stage" not in st.session_state:
+    st.session_state.participant_stage = "information"
+
+if "user_id" not in st.session_state:
+    existing_user_id = st.query_params.get("participant")
+
+    if existing_user_id:
+        st.session_state.user_id = existing_user_id
+        st.session_state.participant_stage = "testing"
+    else:
+        st.session_state.user_id = None
+
+if "test_count" not in st.session_state:
+    st.session_state.test_count = 0
+
+if "latest_result" not in st.session_state:
+    st.session_state.latest_result = None
+
+if "test_complete" not in st.session_state:
+    st.session_state.test_complete = False
+
+if st.session_state.participant_stage == "information":
+
+    st.title("Participant Information")
+
+    st.write(
+        "Please read the participant information below before "
+        "continuing to the consent form."
+    )
+
+    # Insert the final Participant Information Sheet content here.
+
+    st.info(
+        "The full Participant Information Sheet will be displayed here."
+    )
+
+    if st.button("Continue to Consent"):
+        st.session_state.participant_stage = "consent"
+        st.rerun()
+
+    st.stop()
+
+if st.session_state.participant_stage == "consent":
+
+    st.title("Consent Form")
+
+    read_information = st.checkbox(
+        "I have read and understand the Participant Information."
+    )
+
+    age_confirmation = st.checkbox(
+        "I confirm I am aged 18 or over."
+    )
+
+    voluntary_confirmation = st.checkbox(
+        "I understand that my participation is voluntary."
+    )
+
+    data_confirmation = st.checkbox(
+        "I consent to the collection of the testing data "
+        "described in the Participant Information."
+    )
+
+    consent_given = all(
+        [
+            read_information,
+            age_confirmation,
+            voluntary_confirmation,
+            data_confirmation,
+        ]
+    )
+
+    if st.button(
+        "Consent and Begin Testing",
+        disabled=not consent_given,
+    ):
+        if st.session_state.user_id is None:
+            st.session_state.user_id = (
+                f"User-{uuid.uuid4().hex[:8].upper()}"
+            )
+
+        st.query_params["participant"] = st.session_state.user_id
+        st.session_state.participant_stage = "testing"
+        st.rerun()
+
+    st.stop()
+    
+if st.session_state.participant_stage == "survey":
+
+    st.title("Usability Survey")
+
+    st.write(
+        "Thankyou for completing the image testing."
+    )
+
+    st.info(
+        "The usability survey will be added here next."
+    )
+
+    st.stop()
+
 st.title(
     "CNN Mushroom Recognition Comparison"
+)
+
+st.subheader("Your Participant ID")
+
+st.code(
+    st.session_state.user_id,
+    language=None,
+)
+
+st.caption(
+    "Please keep a copy of this ID. It can be used if you "
+    "wish to request withdrawal of your testing data."
 )
 
 st.write(
@@ -406,156 +538,342 @@ st.caption(
     f"Application device: {DEVICE}"
 )
 
-uploaded_file = st.file_uploader(
-    "Upload an image for model comparison",
-    type=["jpg", "jpeg", "png"],
-)
+if not st.session_state.test_complete:
 
-if uploaded_file is not None:
-    image = Image.open(
-        uploaded_file
-    ).convert("RGB")
-
-    st.image(
-        image,
-        caption="Uploaded image",
-        width=400,
+    uploaded_file = st.file_uploader(
+        "Upload an image for model comparison",
+        type=["jpg", "jpeg", "png"],
+        key=f"uploaded_file_{st.session_state.test_count}",
     )
 
-    st.subheader("Model predictions")
+    if uploaded_file is not None:
+        image = Image.open(
+            uploaded_file
+        ).convert("RGB")
 
-    overall_start = time.perf_counter()
-
-    try:
-        (
-            baseline_prediction,
-            baseline_confidence,
-            baseline_time_ms,
-        ) = predict_with_baseline(image)
-
-    except Exception as error:
-        baseline_prediction = None
-        baseline_confidence = None
-        baseline_time_ms = None
-
-        st.error(
-            "The Baseline CNN could not be loaded or executed."
+        st.image(
+            image,
+            caption="Uploaded image",
+            width=400,
         )
 
-        st.exception(error)
-
-    try:
-        (
-            resnet_prediction,
-            resnet_confidence,
-            resnet_time_ms,
-        ) = predict_with_resnet(image)
-
-    except Exception as error:
-        resnet_prediction = None
-        resnet_confidence = None
-        resnet_time_ms = None
-
-        st.error(
-            "The corrected ResNet18 could not be loaded or executed."
+        image_type = st.radio(
+            "What type of image are you testing?",
+            [
+                "Mushroom",
+                "Non-mushroom",
+                "Unsure",
+            ],
+            index= None,
+            horizontal=True,
         )
 
-        st.exception(error)
+        if st.button(
+            "Run Test",
+            type="primary",
+            disabled=image_type is None,
+        ):
+            test_id = (
+                f"TST-{uuid.uuid4().hex[:8].upper()}"
+            )
 
-    baseline_column, resnet_column, mobilenet_column = (
-        st.columns(3)
-    )
+            st.write(
+                f"Test ID: {test_id}"
+            )
 
-    try:
-        (
-            mobilenet_prediction,
-            mobilenet_confidence,
-            mobilenet_time_ms,
-        ) = predict_with_mobilenet(image)
+            st.session_state.test_count += 1
 
-    except Exception as error:
-        mobilenet_prediction = None
-        mobilenet_confidence = None
-        mobilenet_time_ms = None
+            st.subheader("Model predictions")
 
-        st.error(
-            "MobileNetV2 could not be loaded or executed."
-        )
+            overall_start = time.perf_counter()
 
-        st.exception(error)
-    if DEVICE.type == "cuda":
-        torch.cuda.synchronize()
+            try:
+                (
+                    baseline_prediction,
+                    baseline_confidence,
+                    baseline_time_ms,
+                ) = predict_with_baseline(image)
 
-        total_processing_time_ms = (
-            time.perf_counter() - overall_start
-            ) * 1000
+            except Exception as error:
+                baseline_prediction = None
+                baseline_confidence = None
+                baseline_time_ms = None
 
-    with baseline_column:
-        st.markdown("### Baseline CNN")
+                st.error(
+                    "The Baseline CNN could not be loaded or executed."
+                )
 
-        if baseline_prediction is not None:
+                st.exception(error)
+
+            try:
+                (
+                    resnet_prediction,
+                    resnet_confidence,
+                    resnet_time_ms,
+                ) = predict_with_resnet(image)
+
+            except Exception as error:
+                resnet_prediction = None
+                resnet_confidence = None
+                resnet_time_ms = None
+
+                st.error(
+                    "The corrected ResNet18 could not be loaded or executed."
+                )
+
+                st.exception(error)
+
+            baseline_column, resnet_column, mobilenet_column = (
+                st.columns(3)
+            )
+
+            try:
+                (
+                    mobilenet_prediction,
+                    mobilenet_confidence,
+                    mobilenet_time_ms,
+                ) = predict_with_mobilenet(image)
+
+            except Exception as error:
+                mobilenet_prediction = None
+                mobilenet_confidence = None
+                mobilenet_time_ms = None
+
+                st.error(
+                    "MobileNetV2 could not be loaded or executed."
+                )
+
+                st.exception(error)
+            if DEVICE.type == "cuda":
+                torch.cuda.synchronize()
+
+            total_processing_time_ms = (
+                time.perf_counter() - overall_start
+                ) * 1000
+
+            with baseline_column:
+                st.markdown("### Baseline CNN")
+
+                if baseline_prediction is not None:
+                    st.success(
+                        f"Closest trained class: {baseline_prediction}"
+                    )
+
+                    st.metric(
+                        "Confidence",
+                        f"{baseline_confidence * 100:.2f}%",
+                    )
+
+                    st.metric(
+                        "Inference time",
+                        f"{baseline_time_ms:.2f} ms",
+                    )
+
+                else:
+                    st.error("Prediction unavailable")
+
+            with resnet_column:
+                st.markdown("### ResNet18")
+
+                if resnet_prediction is not None:
+                    st.success(
+                        f"Closest trained class: {resnet_prediction}"
+                    )
+
+                    st.metric(
+                        "Confidence",
+                        f"{resnet_confidence * 100:.2f}%",
+                    )
+
+                    st.metric(
+                        "Inference time",
+                        f"{resnet_time_ms:.2f} ms",
+                    )
+
+                else:
+                    st.error("Prediction unavailable")
+
+            with mobilenet_column:
+                st.markdown("### MobileNetV2")
+
+                if mobilenet_prediction is not None:
+                    st.success(
+                        f"Closest trained class: {mobilenet_prediction}"
+                    )
+
+                    st.metric(
+                        "Confidence",
+                        f"{mobilenet_confidence * 100:.2f}%",
+                    )
+
+                    st.metric(
+                        "Inference time",
+                        f"{mobilenet_time_ms:.2f} ms",
+                    )
+
+                else:
+                    st.error("Prediction unavailable")
+
+            st.markdown("---")
+
+            st.metric(
+                "Total Processing Time",
+                f"{total_processing_time_ms:.2f} ms",
+            )
+
+            test_result = {
+                "user_id": st.session_state.user_id,
+                "test_id": test_id,
+                "image_type": image_type,
+                "baseline_prediction": baseline_prediction,
+                "baseline_confidence": baseline_confidence,
+                "baseline_inference_time_ms": baseline_time_ms,
+                "resnet18_prediction": resnet_prediction,
+                "resnet18_confidence": resnet_confidence,
+                "resnet18_inference_time_ms": resnet_time_ms,
+                "mobilenetv2_prediction": mobilenet_prediction,
+                "mobilenetv2_confidence": mobilenet_confidence,
+                "mobilenetv2_inference_time_ms": mobilenet_time_ms,
+                "total_app_processing_time_ms": total_processing_time_ms,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                
+            }
+
+            try:
+                save_test_result(test_result)
+
+            except Exception as error:
+                st.error(
+                    "The test result could not be saved. "
+                    "Please try again."
+                )
+
+                st.exception(error)
+                st.stop()
+
+            st.session_state.test_count += 1
+            st.session_state.latest_result = test_result
+            st.session_state.test_complete = True
+            st.session_state.latest_image = image
+            st.rerun()
+
+
+if(
+    st.session_state.test_complete
+    and st.session_state.latest_result is not None
+):
+            result = st.session_state.latest_result
+
+            if st.session_state.latest_image is not None:
+                st.image(
+                    st.session_state.latest_image,
+                    caption="Tested image",
+                    width= 400,
+                )
+
             st.success(
-                f"Closest trained class: {baseline_prediction}"
+                f"Test completed successfully - {result['test_id']}"
             )
+
+            st.write(
+                f"Image type: **{result['image_type']}**"
+            )
+
+            st.subheader("Model predictions")
+
+            baseline_column, resnet_column, mobilenet_column = st.columns(3)
+
+            with baseline_column:
+                st.markdown("### Baseline CNN")
+
+                if result["baseline_prediction"] is not None:
+                    st.success(
+                        f"Closest trained class: {result['baseline_prediction']}"
+                    )
+
+                    st.metric(
+                        "Confidence",
+                        f"{result['baseline_confidence'] *100:.2f}%",
+                    )
+
+                    st.metric(
+                        "Inference time",
+                        f"{result['baseline_inference_time_ms']:.2f} ms",
+            )
+                else:
+                    st.error("Predicition Unavailable")
+
+            with resnet_column:
+                st.markdown("### ResNet18")
+
+                if result["resnet18_prediction"] is not None:
+                    st.success(
+                        f"Closest trained class: {result['resnet18_prediction']}"
+                    )
+
+                    st.metric(
+                        "Confidence",
+                        f"{result['resnet18_confidence'] * 100:.2f}%",
+                    )
+
+                    st.metric(
+                        "inference time",
+                        f"{result['resnet18_inference_time_ms']:.2f} ms",
+                    )
+
+                else:
+                    st.error("Prediction Unavailable")
+
+
+            with mobilenet_column:
+                st.markdown("### MobileNetV2")
+
+                if result["mobilenetv2_prediction"] is not None:
+                    st.success(
+                        f"Closest trained class: {result['mobilenetv2_prediction']}"
+                    )
+
+                    st.metric(
+                        "inference time",
+                        f"{result['mobilenetv2_inference_time_ms']:.2f}ms",
+                    )
+                else: 
+                    st.error("Prediction Unavailable")
+
+            st.markdown("---")
 
             st.metric(
-                "Confidence",
-                f"{baseline_confidence * 100:.2f}%",
+                "Total Processing Time",
+                f"{result['total_app_processing_time_ms']:.2f}ms",
             )
 
-            st.metric(
-                "Inference time",
-                f"{baseline_time_ms:.2f} ms",
-            )
+            another_column, finish_column = st.columns(2)
 
-        else:
-            st.error("Prediction unavailable")
+            with another_column:
+                if st.button(
+                    "Test Another Image",
+                    type="primary"
+                ):
+                    st.session_state.test_complete = False
+                    st.session_state.latest_result = None
+                    st.session_state.latest_image = None
 
-    with resnet_column:
-        st.markdown("### ResNet18")
+                    st.rerun()
 
-        if resnet_prediction is not None:
-            st.success(
-                f"Closest trained class: {resnet_prediction}"
-            )
+            with finish_column:
+                if st.button(
+                    "Finish Testing",
+                ):
+                    
+                    st.session_state.test_complete = False
+                    st.session_state.latest_result = None
+                    st.session_state.latest_image = None
+                    st.session_state.participant_stage = "survey"
 
-            st.metric(
-                "Confidence",
-                f"{resnet_confidence * 100:.2f}%",
-            )
+                    st.rerun()
+                    
+                
 
-            st.metric(
-                "Inference time",
-                f"{resnet_time_ms:.2f} ms",
-            )
 
-        else:
-            st.error("Prediction unavailable")
-
-    with mobilenet_column:
-        st.markdown("### MobileNetV2")
-
-        if mobilenet_prediction is not None:
-            st.success(
-                f"Closest trained class: {mobilenet_prediction}"
-            )
-
-            st.metric(
-                "Confidence",
-                f"{mobilenet_confidence * 100:.2f}%",
-            )
-
-            st.metric(
-                "Inference time",
-                f"{mobilenet_time_ms:.2f} ms",
-            )
-
-        else:
-            st.error("Prediction unavailable")
-
-    st.markdown("---")
-
-    st.metric(
-        "Total Processing Time",
-        f"{total_processing_time_ms:.2f} ms",
-    )
+            with st.expander("Debug: Recorded Test Data"):
+                st.json(result)

@@ -10,3 +10,7 @@ venv_broken/
 # Python cache files
 __pycache__/
 *.py[cod]
+
+
+# Supabase Streamlit Secrets
+.streamlit/secrets.toml

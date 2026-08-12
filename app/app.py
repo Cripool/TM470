@@ -137,7 +137,37 @@ def get_supabase_client() -> Client:
         st.secrets["supabase"]["url"],
         st.secrets["supabase"]["key"],
     )
+def create_participant_record():
+    supabase = get_supabase_client()
 
+    response = (
+        supabase
+        .rpc("create_participant")
+        .execute()
+    )
+
+    if not response.data:
+        raise RuntimeError("Participant couldnot be created.")
+
+    return response.data[0]
+
+def resume_participant_record(resume_token: str):
+    supabase = get_supabase_client()
+
+    response = (
+        supabase.rpc(
+            "resume_participant",
+            {"p_resume_token": resume_token},
+        )
+        .execute()
+    )
+
+    if not response.data:
+        return None
+
+    return response.data[0]
+
+    
 def save_test_result(test_result: dict):
     supabase = get_supabase_client()
 
@@ -418,13 +448,16 @@ if "participant_stage" not in st.session_state:
     st.session_state.participant_stage = "information"
 
 if "user_id" not in st.session_state:
-    existing_user_id = st.query_params.get("participant")
+    st.session_state.user_id = None
 
-    if existing_user_id:
-        st.session_state.user_id = existing_user_id
-        st.session_state.participant_stage = "testing"
-    else:
-        st.session_state.user_id = None
+if "resume_token" not in st.session_state:
+    st.session_state.resume_token = st.query_params.get("resume")
+
+if "completed_tests" not in st.session_state:
+    st.session_state.completed_test = 0
+
+if "survey_submitted" not in st.session_state:
+    st.session_state.survey_submitted = False
 
 if "test_count" not in st.session_state:
     st.session_state.test_count = 0
@@ -1124,18 +1157,24 @@ if(
                     st.rerun()
 
             with finish_column:
-                if st.button(
-                    "Finish Testing",
+                    
+                    if st.button(
+                        "Finish Testing",
+                        disabled=st.session_state.test_count < 5,
                 ):
-                    
-                    st.session_state.test_complete = False
-                    st.session_state.latest_result = None
-                    st.session_state.latest_image = None
-                    st.session_state.participant_stage = "survey"
+                        st.session_state.test_complete = False
+                        st.session_state.latest_result = None
+                        st.session_state.latest_image = None
+                        st.session_state.participant_stage = "survey"
+                        st.rerun()
 
-                    st.rerun()
+
+                    if st.session_state.test_count < 5:
+                        st.info(
+                            f"Please complete at least 5 image tests before finishing. "
+                            f"You have currently completed {st.session_state.test_count}."
+                        )
                     
-                
 
 
             with st.expander("Debug: Recorded Test Data"):

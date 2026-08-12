@@ -150,6 +150,21 @@ def save_test_result(test_result: dict):
     )
 
     return response
+def save_survey_result(survey_result: dict):
+    supabase = get_supabase_client()
+
+    response = (
+        supabase
+        .table("user_testing_surveys")
+        .insert(
+            survey_result,
+            returning="minimal",
+        )
+        .execute()
+    )
+
+    return response
+
 
 @st.cache_resource
 def load_baseline_model() -> BaselineCNN:
@@ -485,14 +500,181 @@ if st.session_state.participant_stage == "consent":
         st.rerun()
 
     st.stop()
-    
+
 if st.session_state.participant_stage == "survey":
 
     st.title("Usability Survey")
 
     st.write(
-        "Thankyou for completing the image testing."
+        "Thankyou for completing the image testing. "
+        "Please answer the following questions based on your "
+        "experience using the application."
     )
+
+    st.write(
+        "**1 = Strongly disagree | 2 = Disagree | "
+        "3 = Neither agree nor disagree | 4 = Agree | "
+        "5 = Strongly agree**"
+    )
+
+    with st.form("usability_survey"):
+
+        ease_of_use = st.radio(
+            "1. The Application was easy to use.",
+            [1, 2, 3, 4, 5],
+            index= None,
+            horizontal= True,
+        )
+
+        instructions_clear = st.radio(
+            "2. The instructions within the application were clear.",
+            [1, 2, 3, 4, 5],
+            index= None,
+            horizontal= True,
+        )
+
+        upload_process = st.radio(
+            "3. Uploading and testing an image was straightforward.",
+            [1, 2, 3, 4, 5],
+            index= None,
+            horizontal= True,
+        )
+
+        predictions_clear = st.radio(
+            "4. The model predictions were presented clearly.",
+            [1, 2, 3, 4, 5],
+            index= None,
+            horizontal= True,
+        )
+
+        confidence_clear = st.radio(
+            "5. The confidence scores were easy to understand.",
+            [1, 2, 3, 4, 5],
+            index= None,
+            horizontal= True,
+        )
+
+        processing_speed = st.radio(
+            "6. The application responded quickly enough when testing an image.",
+            [1, 2, 3, 4, 5],
+            index= None,
+            horizontal= True,
+        )
+
+        navigation_clear = st.radio(
+            "7. It was clear how to test another image or finish testing.",
+            [1, 2, 3, 4, 5],
+            index= None,
+            horizontal= True,
+        )
+
+        overall_usability = st.radio(
+            "8. Overall, I was satisfied with the usability of the application.",
+            [1, 2, 3, 4, 5],
+            index= None,
+            horizontal= True,
+        )
+
+        experienced_errors = st.radio(
+            " Did you experience any errors or problems while using the application?",
+            ["No", "Yes"],
+            index=None,
+            horizontal=True,
+        )
+
+        comments = st.text_area(
+            "Additional comments or suggestions (optional)",
+            max_chars=1000,
+        )
+
+        submit_survey = st.form_submit_button(
+            "Submit Survey",
+            type="primary",
+        )
+
+
+        if submit_survey:
+
+            required_answers = [
+                ease_of_use,
+                instructions_clear,
+                upload_process,
+                predictions_clear,
+                confidence_clear,
+                processing_speed,
+                navigation_clear,
+                overall_usability,
+                experienced_errors,
+            ]
+
+            if any(answer is None for answer in required_answers):
+
+                st.warning(
+                    "Please answer all required questions before "
+                    "submitting the survey."
+                )
+            else:
+
+                survey_result = {
+                    "user_id": st.session_state.user_id,
+                    "ease_of_use": ease_of_use,
+                    "instructions_clear": instructions_clear,
+                    "upload_process": upload_process,
+                    "predictions_clear": predictions_clear,
+                    "confidence_clear": confidence_clear,
+                    "processing_speed": processing_speed,
+                    "navigation_clear": navigation_clear,
+                    "overall_usability": overall_usability,
+                    "experienced_errors": experienced_errors == "Yes",
+                    "comments": comments.strip() or None,
+                    "timestamp": datetime.now(
+                        timezone.utc
+                    ).isoformat(),
+                }
+
+                try:
+                    save_survey_result(survey_result)
+
+                except Exception as error:
+                    st.error(
+                        "The survey could not be saved. "
+                        "Please try again."
+                    )
+
+                    st.exception(error)
+                    st.stop()
+
+                st.session_state.participant_stage = "complete"
+
+                st.rerun()
+
+        st.stop()
+
+if st.session_state.participant_stage == "complete":
+
+    st.title("Testing Complete")
+
+    st.success(
+        "Thankyou for taking part in the application testing."
+    )
+
+    st.write(
+        "Your image-testing results and usability survey "
+        "have been successfully submitted."
+    )
+
+    st.write(
+        f"Your Participation ID is: **{st.session_state.user_id}**"
+    )
+
+    st.info(
+        "Please keep your Participant ID if you wish to "
+        "request withdrawal of your data within the stated "
+        "withdrawal period."
+    )
+
+    st.stop()
+
 
     st.info(
         "The usability survey will be added here next."
@@ -784,9 +966,20 @@ if(
             baseline_column, resnet_column, mobilenet_column = st.columns(3)
 
             with baseline_column:
-                st.markdown("### Baseline CNN")
+                st.markdown("### Baseline CNN",
+                            help=( "The baseline Convolutional Neural Network (CNN) used as the "
+                                   "reference model for this academic project. It uses a simple "
+                                   "CNN architecture without the specialised features found in "
+                                   "ResNet18 or MobileNetV2."),
+                            )
 
                 if result["baseline_prediction"] is not None:
+                    st.markdown(
+                        "**Prediction**",
+                        help=(
+                            "Represents the Model's best guess at what species of mushroom this image is."
+                        ),
+                    )
                     st.success(
                         f"Closest trained class: {result['baseline_prediction']}"
                     )
@@ -794,19 +987,41 @@ if(
                     st.metric(
                         "Confidence",
                         f"{result['baseline_confidence'] *100:.2f}%",
+                        help=(
+                                "How strongly the model favours this prediction compared "
+                                "with the other trained classes. A high confidence score "
+                                "does not guarantee that the prediction is correct."
+                            ),
                     )
 
                     st.metric(
                         "Inference time",
                         f"{result['baseline_inference_time_ms']:.2f} ms",
+                        help=(
+                                "The time taken by this model to process the image and "
+                                "produce its prediction, measured in milliseconds."
+                            ),
             )
                 else:
                     st.error("Predicition Unavailable")
 
             with resnet_column:
-                st.markdown("### ResNet18")
+                st.markdown("### ResNet18",
+                            help=(
+                                    "A deeper Convolutional Neural Network architecture that uses "
+                                    "residual or skip connections. These connections help information "
+                                    "flow through the network and support training of deeper models."
+                                ),
+                    )
 
                 if result["resnet18_prediction"] is not None:
+                    st.markdown(
+                        "**Prediction**",
+                        help=(
+                            "Represents the Model's best guess at what species of mushroom this image is."
+                        ),
+                    )
+
                     st.success(
                         f"Closest trained class: {result['resnet18_prediction']}"
                     )
@@ -814,11 +1029,21 @@ if(
                     st.metric(
                         "Confidence",
                         f"{result['resnet18_confidence'] * 100:.2f}%",
+
+                         help=(
+                                "How strongly the model favours this prediction compared "
+                                "with the other trained classes. A high confidence score "
+                                "does not guarantee that the prediction is correct."
+                            ),
                     )
 
                     st.metric(
                         "inference time",
                         f"{result['resnet18_inference_time_ms']:.2f} ms",
+                        help=(
+                                "The time taken by this model to process the image and "
+                                "produce its prediction, measured in milliseconds."
+                            ),
                     )
 
                 else:
@@ -826,16 +1051,48 @@ if(
 
 
             with mobilenet_column:
-                st.markdown("### MobileNetV2")
+                st.markdown("### MobileNetV2",
+
+                    help=(
+                    "A Convolutional Neural Network architecture designed to be more "
+                    "computationally efficient. It uses specialised convolution methods "
+                    "to reduce processing requirements while still performing image recognition."
+                    ),
+                )
 
                 if result["mobilenetv2_prediction"] is not None:
+
+                    st.markdown(
+                        "**Prediction**",
+                        help=(
+                            "Represents the Model's best guess at what species of mushroom this image is."
+                        ),
+                    )
+
                     st.success(
                         f"Closest trained class: {result['mobilenetv2_prediction']}"
                     )
 
                     st.metric(
+                        "Confidence",
+                        f"{result['mobilenetv2_confidence'] * 100:.2f}%",
+
+                        help=(
+                                "How strongly the model favours this prediction compared "
+                                "with the other trained classes. A high confidence score "
+                                "does not guarantee that the prediction is correct."
+                            ),
+
+                    )
+
+                    st.metric(
                         "inference time",
-                        f"{result['mobilenetv2_inference_time_ms']:.2f}ms",
+                        f"{result['mobilenetv2_inference_time_ms']:.2f} ms",
+
+                        help=(
+                                "The time taken by this model to process the image and "
+                                "produce its prediction, measured in milliseconds."
+                            ),
                     )
                 else: 
                     st.error("Prediction Unavailable")
@@ -844,7 +1101,13 @@ if(
 
             st.metric(
                 "Total Processing Time",
-                f"{result['total_app_processing_time_ms']:.2f}ms",
+                f"{result['total_app_processing_time_ms']:.2f} ms",
+
+                help=(
+                    "The total time taken by the application to process the uploaded "
+                    "image through all three AI models and produce their predictions. "
+                    "Measured in milliseconds."
+                ),
             )
 
             another_column, finish_column = st.columns(2)

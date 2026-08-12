@@ -195,6 +195,19 @@ def save_survey_result(survey_result: dict):
 
     return response
 
+def save_withdrawal_request(user_id: str):
+    supabase = get_supabase_client()
+
+    response = (
+    supabase
+    .table("withdrawal_requests")
+    .insert(
+        {"user_id": user_id},
+        returning="minimal"
+        )
+        .execute()
+    )
+    return response
 
 @st.cache_resource
 def load_baseline_model() -> BaselineCNN:
@@ -454,13 +467,11 @@ if "resume_token" not in st.session_state:
     st.session_state.resume_token = st.query_params.get("resume")
 
 if "completed_tests" not in st.session_state:
-    st.session_state.completed_test = 0
+    st.session_state.completed_tests = 0
 
 if "survey_submitted" not in st.session_state:
     st.session_state.survey_submitted = False
 
-if "test_count" not in st.session_state:
-    st.session_state.test_count = 0
 
 if "latest_result" not in st.session_state:
     st.session_state.latest_result = None
@@ -468,24 +479,149 @@ if "latest_result" not in st.session_state:
 if "test_complete" not in st.session_state:
     st.session_state.test_complete = False
 
+if "latest_image" not in st.session_state:
+    st.session_state.latset_image = None
+
+if(
+    st.session_state.resume_token
+    and st.session_state.user_id is None
+):
+
+    try:
+        participant = resume_participant_record(
+            st.session_state.resume_token
+        )
+
+        if participant is not None:
+            st.session_state.user_id = participant ["user_id"]
+            st.session_state.completed_tests = int(
+                participant["test_count"]
+            )
+            st.session_state.survey_submitted = bool(
+                participant["survey_submitted"]
+            )
+
+            if st.session_state.survey_submitted:
+                st.session_state.participant_stage = "complete"
+            else:
+                st.session_state.participant_stage = "testing"
+
+        else:
+            st.session_state.resume_token = None
+            st.query_params.clear()
+
+    except Exception as error:
+        st.error(
+            "The participant session could not be restored."
+        )
+        st.exception(error)
+        st.stop()
+
 if st.session_state.participant_stage == "information":
 
     st.title("Participant Information")
 
+    st.subheader("About this project")
+
     st.write(
-        "Please read the participant information below before "
-        "continuing to the consent form."
+        "This user testing forms part of a TM470 Computing and IT project "
+        "investigating and comparing three Convolutional Neural Network (CNN) "
+        "models for mushroom image recognition."
     )
 
-    # Insert the final Participant Information Sheet content here.
+    st.subheader("What will I be asked to do?")
+
+    st.write(
+        "You will be asked to upload different images to the application. "
+        "The images may contain mushrooms or non-mushroom subjects. "
+        "The application will process each image using three AI models and "
+        "display their predictions, confidence scores and processing times."
+    )
+
+    st.write(
+        "Please aim to test at least 5 different images if possible. "
+        "You may continue testing up to a maximum of 10 images."
+    )
+
+    st.subheader("What information will be collected?")
+
+    st.write(
+        "The application will record a randomly generated Participant ID, "
+        "a unique Test ID for each test, the type of image selected, model "
+        "predictions, confidence scores, processing times, timestamps and "
+        "your responses to the usability survey."
+    )
+
+    st.write(
+        "Your uploaded images are processed temporarily by the application "
+        "and are not stored as part of the research data."
+    )
+
+    st.subheader("Voluntary participation")
+
+    st.write(
+        "Taking part is voluntary. You may stop participating at any time. "
+        "You do not have to provide a reason."
+    )
+
+    st.subheader("Withdrawal of your data")
+
+    st.write(
+        "You will be provided with a randomly generated Participant ID. "
+        "Please keep this ID if you may wish to request withdrawal of your "
+        "data. Withdrawal requests can be made within 7 days of completing "
+        "the testing."
+    )
 
     st.info(
-        "The full Participant Information Sheet will be displayed here."
+        "Instructions explaining how to request withdrawal will be provided "
+        "when you complete the testing."
     )
 
-    if st.button("Continue to Consent"):
-        st.session_state.participant_stage = "consent"
-        st.rerun()
+    st.subheader("Important safety information")
+
+    st.warning(
+        "This application is an academic prototype only. It always selects "
+        "the closest match from the mushroom classes it has been trained to "
+        "recognise and cannot reliably determine whether an image contains "
+        "a mushroom. Do not use the application to determine whether a "
+        "mushroom is safe to touch or consume."
+    )
+
+    st.subheader("Who can participate?")
+
+    st.write(
+        "Participants must be aged 18 or over."
+    )
+
+    st.subheader("Contact")
+
+    st.write(
+        "If you have any questions about the project or wish to request "
+        "withdrawal of your data, please contact:"
+    )
+
+    st.write(
+        "**Researcher:** Brendan Fitzpatrick  \n"
+        "**Email:** zy923716@ou.ac.uk"
+    )
+
+    continue_column, withdrawal_column = st.columns(2)
+
+    with continue_column:
+        if st.button(
+            "Continue to Consent",
+            type="primary",
+        ):
+            st.session_state.participant_stage = "consent"
+            st.rerun()
+
+    with withdrawal_column:
+        if st.button(
+            "Rewuest Data Withdrawal",
+        ):
+            st.session_state.participant_stage = "withdrawal"
+            st.rerun()
 
     st.stop()
 
@@ -493,46 +629,108 @@ if st.session_state.participant_stage == "consent":
 
     st.title("Consent Form")
 
+    st.write(
+        "Please confirm each of the statements below before beginning "
+        "the application testing."
+    )
+
     read_information = st.checkbox(
-        "I have read and understand the Participant Information."
+        "I confirm that I have read and understood the Participant "
+        "Information provided for this study."
     )
 
     age_confirmation = st.checkbox(
-        "I confirm I am aged 18 or over."
+        "I confirm that I am aged 18 or over."
     )
 
     voluntary_confirmation = st.checkbox(
-        "I understand that my participation is voluntary."
+        "I understand that my participation is voluntary and that I may "
+        "stop participating at any time."
     )
 
     data_confirmation = st.checkbox(
-        "I consent to the collection of the testing data "
-        "described in the Participant Information."
+        "I understand what testing data will be collected and that it "
+        "will be used as part of this academic project."
     )
 
-    consent_given = all(
-        [
-            read_information,
-            age_confirmation,
-            voluntary_confirmation,
-            data_confirmation,
-        ]
+    image_confirmation = st.checkbox(
+        "I understand that images I upload will be processed temporarily "
+        "by the application and will not be stored as part of the research data."
     )
+
+    withdrawal_confirmation = st.checkbox(
+        "I understand that I will receive a Participant ID which can be "
+        "used to request withdrawal of my data within 7 days of completing "
+        "the testing."
+    )
+
+    consent_given = all([
+        read_information,
+        age_confirmation,
+        voluntary_confirmation,
+        data_confirmation,
+        image_confirmation,
+        withdrawal_confirmation,
+    ])
 
     if st.button(
         "Consent and Begin Testing",
         disabled=not consent_given,
+        type="primary",
     ):
-        if st.session_state.user_id is None:
-            st.session_state.user_id = (
-                f"User-{uuid.uuid4().hex[:8].upper()}"
+        try:
+            participant = create_participant_record()
+
+            st.session_state.user_id = participant["user_id"]
+
+            st.session_state.resume_token = str(
+                participant["resume_token"]
             )
 
-        st.query_params["participant"] = st.session_state.user_id
-        st.session_state.participant_stage = "testing"
-        st.rerun()
+            st.session_state.completed_tests = 0
+            st.session_state.survey_submitted = False
+
+            st.query_params["resume"] = (
+                st.session_state.resume_token
+            )
+
+            st.session_state.participant_stage = "testing"
+
+            st.rerun()
+
+        except Exception as error:
+            st.error(
+                "Your participant session could not be created. "
+                "Please try again."
+            )
+            st.stop()
 
     st.stop()
+
+
+def refresh_participant_progress():
+    if not st.session_state.resume_token:
+        return
+
+    participant = resume_participant_record(
+        st.session_state.resume_token
+    )
+
+    if participant is None:
+        raise RuntimeError(
+            "Participant record could not be found."
+        )
+
+    st.session_state.user_id = participant["user_id"]
+
+    st.session_state.completed_tests = int(
+        participant["test_count"]
+    )
+
+    st.session_state.survey_submitted = bool(
+        participant["survey_submitted"]
+    )
+
 
 if st.session_state.participant_stage == "survey":
 
@@ -715,6 +913,74 @@ if st.session_state.participant_stage == "complete":
 
     st.stop()
 
+if st.session_state.participant_stage =="withdrawal":
+
+    st.title("Request Data Withdrawal")
+
+    st.write(
+        "If you previously took part in the application testing and would "
+        "like your research data to be removed, enter the Participant ID "
+        "you were given when you completed the testing"
+    )
+
+    st.info(
+        "Your Participant ID will look similar to: User-12AB34CD"
+    )
+
+    with st.form("withdrawal_request_form"):
+        withdrawal_user_id = st.text_input(
+            "Participant ID"
+        )
+
+        confirm_withdrawal = st.checkbox(
+            "I confirm that I am requesting withdrawal of the research "
+            "data associated with this Participant ID."
+        )
+
+        submit_withdrawal = st.form_submit_button(
+            "Submit Withdrawal Request",
+            type="primary",
+        )
+
+    if submit_withdrawal:
+
+        cleaned_user_id = withdrawal_user_id.strip()
+
+        if not cleaned_user_id:
+            st.warning(
+                "Please enter your Participant ID."
+            )
+
+        elif not confirm_withdrawal:
+            st.warning(
+                "Please confirm that you wish to request withdrawal."
+            )
+
+        else:
+            try:
+                save_withdrawal_request(
+                    cleaned_user_id
+                )
+
+                st.success(
+                    "Your withdrawal request has been submitted. "
+                    "The research data associated with the supplied "
+                    "Participant ID will be reviewed for removal."
+                )
+
+            except Exception as error:
+                st.error(
+                    "The withdrawal request could not be submitted. "
+                    "Please check your Participant ID and try again."
+                )
+
+    if st.button("Back to Participant Information"):
+        st.session_state.participant_stage = "information"
+        st.rerun()
+
+    st.stop()
+
+
 st.title(
     "CNN Mushroom Recognition Comparison"
 )
@@ -753,12 +1019,25 @@ st.caption(
     f"Application device: {DEVICE}"
 )
 
+
+if st.session_state.participant_stage == "testing":
+
+    try:
+        refresh_participant_progress()
+
+    except Exception:
+        st.error(
+            "Your testing progress could not be loaded. "
+            "Please refresh the page and try again."
+        )
+        st.stop()
+
 if not st.session_state.test_complete:
 
     uploaded_file = st.file_uploader(
         "Upload an image for model comparison",
         type=["jpg", "jpeg", "png"],
-        key=f"uploaded_file_{st.session_state.test_count}",
+        key=f"uploaded_file_{st.session_state.completed_tests}",
     )
 
     if uploaded_file is not None:
@@ -795,8 +1074,6 @@ if not st.session_state.test_complete:
             st.write(
                 f"Test ID: {test_id}"
             )
-
-            st.session_state.test_count += 1
 
             st.subheader("Model predictions")
 
@@ -966,7 +1243,6 @@ if not st.session_state.test_complete:
                 st.exception(error)
                 st.stop()
 
-            st.session_state.test_count += 1
             st.session_state.latest_result = test_result
             st.session_state.test_complete = True
             st.session_state.latest_image = image
@@ -1146,21 +1422,28 @@ if(
             another_column, finish_column = st.columns(2)
 
             with another_column:
-                if st.button(
-                    "Test Another Image",
-                    type="primary"
-                ):
-                    st.session_state.test_complete = False
-                    st.session_state.latest_result = None
-                    st.session_state.latest_image = None
 
-                    st.rerun()
+                if st.session_state.completed_tests < 10:
+                    if st.button(
+                        "Test Another Image",
+                        type="primary"
+                ):
+                        st.session_state.test_complete = False
+                        st.session_state.latest_result = None
+                        st.session_state.latest_image = None
+                        st.rerun()
+                else:
+                    st.button(
+                        "Test Another Image",
+                        type="primary",
+                        disabled= True,
+                    )
 
             with finish_column:
                     
                     if st.button(
                         "Finish Testing",
-                        disabled=st.session_state.test_count < 5,
+                        disabled=st.session_state.completed_tests < 5,
                 ):
                         st.session_state.test_complete = False
                         st.session_state.latest_result = None
@@ -1169,12 +1452,27 @@ if(
                         st.rerun()
 
 
-                    if st.session_state.test_count < 5:
+                    if st.session_state.completed_tests < 5:
                         st.info(
                             f"Please complete at least 5 image tests before finishing. "
-                            f"You have currently completed {st.session_state.test_count}."
+                            f"You have currently completed {st.session_state.completed_tests}."
                         )
-                    
+
+                    elif st.session_state.completed_tests < 10:
+                        st.success(
+                            f"You have completed {st.session_state.completed_tests} out of 10 image tests. "
+                            "Thank you for reaching the recommended minimum of 5. "
+                            "You may continue testing more images, or finish testing and complete the usability survey."
+                        )
+
+                    else:
+                        st.success(
+                            "Thankyou for completing the 10 image tests. "
+                            "You have reached the maximum recommended number of test images.  "
+                            "Please finish testing and complete the usability survey."
+                        )
+
+                   
 
 
             with st.expander("Debug: Recorded Test Data"):

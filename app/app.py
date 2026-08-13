@@ -460,6 +460,9 @@ st.set_page_config(
 if "participant_stage" not in st.session_state:
     st.session_state.participant_stage = "information"
 
+if "viewing_information" not in st.session_state:
+    st.session_state.viewing_information = False
+
 if "user_id" not in st.session_state:
     st.session_state.user_id = None
 
@@ -485,6 +488,7 @@ if "latest_image" not in st.session_state:
 if(
     st.session_state.resume_token
     and st.session_state.user_id is None
+    and not st.session_state.viewing_information
 ):
 
     try:
@@ -609,12 +613,13 @@ if st.session_state.participant_stage == "information":
     continue_column, withdrawal_column = st.columns(2)
 
     with continue_column:
-        if st.button(
-            "Continue to Consent",
-            type="primary",
+        if st.session_state.user_id is None:
+            if st.button(
+                "Continue to Consent",
+                type="primary",
         ):
-            st.session_state.participant_stage = "consent"
-            st.rerun()
+                st.session_state.participant_stage = "consent"
+                st.rerun()
 
     with withdrawal_column:
         if st.button(
@@ -886,7 +891,7 @@ if st.session_state.participant_stage == "complete":
     st.title("Testing Complete")
 
     st.success(
-        "Thankyou for taking part in the application testing."
+        "Thank you for taking part in the application testing."
     )
 
     st.write(
@@ -895,7 +900,7 @@ if st.session_state.participant_stage == "complete":
     )
 
     st.write(
-        f"Your Participation ID is: **{st.session_state.user_id}**"
+        f"Your Participant ID is: **{st.session_state.user_id}**"
     )
 
     st.info(
@@ -904,9 +909,20 @@ if st.session_state.participant_stage == "complete":
         "withdrawal period."
     )
 
-    if st.button("Request Data Withdrawal"):
-        st.session_state.participant_stage = "withdrawal"
-        st.rerun()
+    withdrawal, information = st.columns(2)
+
+    with withdrawal:
+
+        if st.button("Request Data Withdrawal"):
+            st.session_state.viewing_information = False
+            st.session_state.participant_stage = "withdrawal"
+            st.rerun()
+
+    with information:
+        if st.button("Back to Participant Information"):
+            st.session_state.viewing_information = True
+            st.session_state.participant_stage = "information"
+            st.rerun()     
 
     st.stop()
 

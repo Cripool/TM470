@@ -907,9 +907,6 @@ if st.session_state.participant_stage == "complete":
     st.stop()
 
 
-    st.info(
-        "The usability survey will be added here next."
-    )
 
     if st.button("Request Data Withdrawal"):
         st.session_state.participant_stage = "withdrawal"

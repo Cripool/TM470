@@ -12,7 +12,7 @@ from PIL import Image
 from torchvision import transforms, models
 import uuid
 from supabase import create_client, Client
-
+import logging
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 BASELINE_CHECKPOINT = (
@@ -514,7 +514,7 @@ if(
         st.error(
             "The participant session could not be restored."
         )
-        st.exception(error)
+        logging.exception("Failed to save test result")
         st.stop()
 
 if st.session_state.participant_stage == "information":
@@ -618,7 +618,7 @@ if st.session_state.participant_stage == "information":
 
     with withdrawal_column:
         if st.button(
-            "Rewuest Data Withdrawal",
+            "Request Data Withdrawal",
         ):
             st.session_state.participant_stage = "withdrawal"
             st.rerun()
@@ -872,7 +872,7 @@ if st.session_state.participant_stage == "survey":
                         "Please try again."
                     )
 
-                    st.exception(error)
+                    logging.exception("Failed to save test result")
                     st.stop()
 
                 st.session_state.participant_stage = "complete"
@@ -1004,8 +1004,6 @@ st.write(
     "genera used during training."
 )
 
-with st.expander("Supported mushroom classes"):
-    st.write(", ".join(CLASS_NAMES))
 
 st.warning(
     "Academic demonstrator only. The models always select the closest "
@@ -1095,7 +1093,7 @@ if not st.session_state.test_complete:
                     "The Baseline CNN could not be loaded or executed."
                 )
 
-                st.exception(error)
+                logging.exception("Failed to save test result")
 
             try:
                 (
@@ -1113,7 +1111,7 @@ if not st.session_state.test_complete:
                     "The corrected ResNet18 could not be loaded or executed."
                 )
 
-                st.exception(error)
+                logging.exception("Failed to save test result")
 
             baseline_column, resnet_column, mobilenet_column = (
                 st.columns(3)
@@ -1135,7 +1133,7 @@ if not st.session_state.test_complete:
                     "MobileNetV2 could not be loaded or executed."
                 )
 
-                st.exception(error)
+                logging.exception("Failed to save test result")
             if DEVICE.type == "cuda":
                 torch.cuda.synchronize()
 
@@ -1240,7 +1238,7 @@ if not st.session_state.test_complete:
                     "Please try again."
                 )
 
-                st.exception(error)
+                logging.exception("Failed to save test result")
                 st.stop()
 
             st.session_state.latest_result = test_result
@@ -1471,9 +1469,3 @@ if(
                             "You have reached the maximum recommended number of test images.  "
                             "Please finish testing and complete the usability survey."
                         )
-
-                   
-
-
-            with st.expander("Debug: Recorded Test Data"):
-                st.json(result)

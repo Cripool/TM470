@@ -1001,12 +1001,21 @@ if st.session_state.participant_stage =="withdrawal":
 
             except Exception as error:
 
-                if getattr(error, "code", None) == "2305":
+                error_code = getattr(error, "code", None)
 
+                # Some Supabase/PostgREST errors store the details in args
+                if error_code is None and getattr(error, "args", None):
+                    first_arg = error.args[0]
+
+                    if isinstance(first_args, dict):
+                        error_code = first_arg.get("code")
+
+                if str(error_code) == "2305" or "23505" in str(error):
                     st.info(
                         "A withdrawal request has already been submitted "
                         "for this Participant ID."
                     )
+                    
                 else:
                     st.error(
                         "The withdrawal request could not be submitted. "

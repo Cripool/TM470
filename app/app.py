@@ -13,6 +13,8 @@ from torchvision import transforms, models
 import uuid
 from supabase import create_client, Client
 import logging
+import re
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 BASELINE_CHECKPOINT = (
@@ -958,7 +960,12 @@ if st.session_state.participant_stage =="withdrawal":
 
     if submit_withdrawal:
 
-        cleaned_user_id = withdrawal_user_id.strip()
+        cleaned_user_id = withdrawal_user_id.strip().upper()
+        cleaned_user_id = cleaned_user_id.replace(" ", "")
+
+        # Allow for either User-123SDFSF3 or just 123SDFSF3
+        if cleaned_user_id.startswith("USER-"):
+            cleaned_user_id = cleaned_user_id[5:]
 
         if not cleaned_user_id:
             st.warning(
@@ -970,7 +977,16 @@ if st.session_state.participant_stage =="withdrawal":
                 "Please confirm that you wish to request withdrawal."
             )
 
+        elif not re.fullmatch(r"[A-F0-9]{8}", cleaned_user_id):
+            st.warning(
+                "Please enter a valid Participant ID, for example "
+                "User-12AB34CD or 12AB34CD."
+            )
+
         else:
+            # Convert everything back to the format stored in Supabase
+            cleaned_user_id = f"User-{cleaned_user_id}"
+
             try:
                 save_withdrawal_request(
                     cleaned_user_id
@@ -986,6 +1002,10 @@ if st.session_state.participant_stage =="withdrawal":
                 st.error(
                     "The withdrawal request could not be submitted. "
                     "Please check your Participant ID and try again."
+                )
+
+                logging.exception(
+                    "Failed to submit withdrawal request"
                 )
 
     if st.button("Back to Participant Information"):

@@ -940,7 +940,8 @@ if st.session_state.participant_stage =="withdrawal":
     )
 
     st.info(
-        "Your Participant ID will look similar to: User-12AB34CD"
+        "Enter your full Participant ID (for example User-C64A548B) "
+        "or just the 8-character code (for example C64A548B)."
     )
 
     with st.form("withdrawal_request_form"):

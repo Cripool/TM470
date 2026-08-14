@@ -594,6 +594,18 @@ if st.session_state.participant_stage == "information":
         "mushroom is safe to touch or consume."
     )
 
+    with st.expander("View the 11 mushroom genera recognised by the models"):
+        st.write(
+            "The models were trained to classify images into the following genera:"
+            )
+        st.write(
+
+            "Agaricus, Amanita, Boletus, Cortinarius, Entoloma, Exidia, "
+            "Hygrocybe, Inocybe, Lactarius, Russula and Suillus."
+
+            )
+        
+
     st.subheader("Who can participate?")
 
     st.write(
@@ -1015,7 +1027,7 @@ if st.session_state.participant_stage =="withdrawal":
                         "A withdrawal request has already been submitted "
                         "for this Participant ID."
                     )
-                    
+
                 else:
                     st.error(
                         "The withdrawal request could not be submitted. "

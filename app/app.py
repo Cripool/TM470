@@ -1000,14 +1000,22 @@ if st.session_state.participant_stage =="withdrawal":
                 )
 
             except Exception as error:
-                st.error(
-                    "The withdrawal request could not be submitted. "
-                    "Please check your Participant ID and try again."
-                )
 
-                logging.exception(
-                    "Failed to submit withdrawal request"
-                )
+                if getattr(error, "code", None) == "2305":
+
+                    st.info(
+                        "A withdrawal request has already been submitted "
+                        "for this Participant ID."
+                    )
+                else:
+                    st.error(
+                        "The withdrawal request could not be submitted. "
+                        "Please check your Participant ID and try again."
+                        )
+
+                    logging.exception(
+                        "Failed to submit withdrawal request"
+                        )
 
     if st.button("Back to Participant Information"):
         st.session_state.participant_stage = "information"
